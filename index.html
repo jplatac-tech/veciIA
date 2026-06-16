@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="VeciIA – Reporta problemas de tu barrio en tiempo real. La IA los organiza, prioriza y conecta con quien puede solucionarlos.">
+  <title>Inicio – VeciIA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="index">
+  <div class="blob blob-peach" aria-hidden="true"></div>
+  <div class="blob blob-mint" aria-hidden="true"></div>
+  <div class="blob blob-yellow" aria-hidden="true"></div>
+
+  <div id="site-header"></div>
+
+  <main class="page-main">
+    <section class="hero">
+      <div class="hero-content">
+        <span class="hero-badge" data-reveal>🌎 Plataforma comunitaria</span>
+        <h1 data-reveal data-delay="100">VeciIA – los Problemas de Barrio</h1>
+        <p class="hero-desc" data-reveal data-delay="200">
+          Una plataforma donde los ciudadanos reportan problemas de su comunidad en tiempo real
+          y una IA los organiza, prioriza y conecta con las personas o entidades que pueden solucionarlos.
+        </p>
+        <div class="hero-actions" data-reveal data-delay="300">
+          <a href="mapa.html#reportar" class="btn-primary js-report">Reportar un problema</a>
+          <a href="plataforma.html" class="btn-secondary">Conocer más</a>
+        </div>
+        <div class="social-proof" data-reveal data-delay="400">
+          <div class="stars" aria-label="4.8 de 5 estrellas">
+            <span class="star filled">★</span>
+            <span class="star filled">★</span>
+            <span class="star filled">★</span>
+            <span class="star filled">★</span>
+            <span class="star">★</span>
+          </div>
+          <span>Comunidades activas en Cartagena y Colombia</span>
+        </div>
+      </div>
+      <div class="hero-visual" data-reveal="right" data-delay="200">
+        <div class="hero-image">
+          <a href="mapa.html" class="map-preview-link">
+            <div class="map-preview">
+              <img
+                src="assets/hero-heatmap.png"
+                alt="Mapa de calor en tiempo real de problemas reportados en Cartagena"
+                class="map-preview-img"
+                width="520"
+                height="390"
+                loading="eager"
+              >
+              <div class="map-notifications" aria-live="polite"></div>
+              <span class="map-label">
+                <span class="live-dot"></span>
+                Mapa de calor en tiempo real
+              </span>
+            </div>
+            <span class="play-btn" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2 data-reveal>La red de solución de problemas comunitarios en tiempo real</h2>
+      <div class="stats-grid">
+        <div class="stat-card" data-reveal data-delay="0" data-tilt>
+          <span class="stat-icon" aria-hidden="true">👥</span>
+          <span class="stat-number" data-stat="users">847+</span>
+          <span class="stat-label">Vecinos activos</span>
+        </div>
+        <div class="stat-card" data-reveal data-delay="100" data-tilt>
+          <span class="stat-icon" aria-hidden="true">📍</span>
+          <span class="stat-number" data-stat="reports">10</span>
+          <span class="stat-label">Problemas reportados</span>
+        </div>
+        <div class="stat-card" data-reveal data-delay="200" data-tilt>
+          <span class="stat-icon" aria-hidden="true">✅</span>
+          <span class="stat-number" data-stat="resolved">2</span>
+          <span class="stat-label">Soluciones registradas</span>
+        </div>
+        <div class="stat-card" data-reveal data-delay="300" data-tilt>
+          <span class="stat-icon" aria-hidden="true">🏛️</span>
+          <span class="stat-number" data-stat="entities">12+</span>
+          <span class="stat-label">Entidades conectadas</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-inner">
+        <span class="section-tag" data-reveal>Explora VeciIA</span>
+        <h2 data-reveal data-delay="50">Todo lo que necesitas en un solo lugar</h2>
+        <div class="page-cards">
+          <a href="plataforma.html" class="page-card" data-reveal data-delay="0" data-tilt>
+            <span class="page-card-icon">📱</span>
+            <h3>Plataforma</h3>
+            <p>Qué es, ejemplos y qué la hace diferente de WhatsApp.</p>
+            <span class="page-card-link">Ver más →</span>
+          </a>
+          <a href="mapa.html" class="page-card" data-reveal data-delay="100" data-tilt>
+            <span class="page-card-icon">🗺️</span>
+            <h3>Mapa interactivo</h3>
+            <p>Reporta problemas en Cartagena con mapa de calor en vivo.</p>
+            <span class="page-card-link">Probar ahora →</span>
+          </a>
+          <a href="comunidad.html" class="page-card" data-reveal data-delay="200" data-tilt>
+            <span class="page-card-icon">🏆</span>
+            <h3>Comunidad</h3>
+            <p>Impacto social, beneficios para Colombia y crecimiento.</p>
+            <span class="page-card-link">Descubrir →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="cta-inner" data-reveal>
+        <h2>¿Listo para transformar tu barrio?</h2>
+        <p>Únete a VeciIA y sé parte de la red que resuelve problemas en tiempo real.</p>
+        <a href="mapa.html" class="btn-primary btn-large">Comenzar ahora</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="site-auth"></div>
+
+  <script src="layout.js"></script>
+  <script src="app.js"></script>
+  <script src="ui.js"></script>
+  <script src="main.js"></script>
+  <script>
+    if (typeof VeciIA !== 'undefined') {
+      VeciIA.on('ready', () => {
+        const s = VeciIA.getStats();
+        document.querySelector('[data-stat="users"]').textContent = s.users.toLocaleString('es-CO') + '+';
+        document.querySelector('[data-stat="reports"]').textContent = s.reports.toLocaleString('es-CO');
+        document.querySelector('[data-stat="resolved"]').textContent = s.resolved.toLocaleString('es-CO');
+        document.querySelector('[data-stat="entities"]').textContent = s.entities + '+';
+      });
+    }
+  </script>
+</body>
+</html>

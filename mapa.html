@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Mapa interactivo de Cartagena con mapa de calor. Reporta problemas de tu barrio en tiempo real.">
+  <title>Mapa – VeciIA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="mapa">
+  <div id="site-header"></div>
+
+  <main class="page-main page-main--map">
+    <section class="map-page-header">
+      <div class="section-inner map-section-inner">
+        <span class="section-tag">Prueba en vivo</span>
+        <h1>Mapa interactivo de Cartagena</h1>
+        <p class="section-lead">
+          Regístrate, reporta problemas en el mapa y observa cómo la IA agrupa reportes similares en el mapa de calor.
+        </p>
+      </div>
+    </section>
+
+    <section class="map-page-body" id="reportar">
+      <div class="section-inner map-section-inner">
+        <div class="map-workspace">
+          <aside class="map-sidebar">
+            <!-- Invitado: banner para registrarse -->
+            <div class="guest-only guest-banner">
+              <p>👋 <strong>Inicia sesión</strong> para reportar problemas y ganar puntos de impacto.</p>
+              <button type="button" class="btn-primary btn-sm btn-block" data-open-auth="register">Crear cuenta gratis</button>
+              <button type="button" class="btn-secondary btn-sm btn-block" data-open-auth="login">Ya tengo cuenta</button>
+            </div>
+
+            <!-- Usuario logueado: formulario siempre visible -->
+            <div class="logged-in-only report-section" id="report-section">
+              <div class="sidebar-user-chip">
+                <span class="chip-avatar" id="sidebar-avatar">V</span>
+                <div>
+                  <strong id="sidebar-user-name">Vecino</strong>
+                  <small id="sidebar-user-barrio">Cartagena</small>
+                </div>
+              </div>
+              <h2 class="sidebar-heading">➕ Reportar un problema</h2>
+              <p class="sidebar-hint">Completa el formulario y haz clic en el mapa para marcar la ubicación.</p>
+              <form id="report-form" class="report-form">
+                <label for="report-desc">Describe el problema</label>
+                <textarea id="report-desc" rows="3" placeholder="Ej: Hay una alcantarilla destapada…" required maxlength="300"></textarea>
+                <p id="category-hint" class="category-hint" style="display:none"></p>
+
+                <label for="report-category">Categoría</label>
+                <select id="report-category">
+                  <option value="auto">🤖 Detectar automáticamente (IA)</option>
+                  <option value="infraestructura">🕳️ Infraestructura</option>
+                  <option value="servicios">💡 Servicios públicos</option>
+                  <option value="animales">🐕 Animales</option>
+                  <option value="salud">🩸 Salud / emergencia</option>
+                  <option value="seguridad">🚨 Seguridad</option>
+                  <option value="otro">📍 Otro</option>
+                </select>
+
+                <label for="report-urgency">Urgencia</label>
+                <select id="report-urgency">
+                  <option value="baja">Baja</option>
+                  <option value="media" selected>Media</option>
+                  <option value="alta">Alta</option>
+                  <option value="critica">Crítica</option>
+                </select>
+
+                <label>Ubicación en el mapa</label>
+                <p id="selected-coords" class="selected-coords">👆 Haz clic en el mapa de la derecha</p>
+
+                <div class="report-form-actions">
+                  <button type="button" id="btn-my-location" class="btn-secondary btn-sm btn-block">📍 Usar mi ubicación GPS</button>
+                  <button type="submit" class="btn-primary btn-block btn-submit-report">Enviar reporte (+10 pts)</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Lista de reportes (todos pueden ver) -->
+            <div class="reports-section">
+              <h2 class="sidebar-heading">📋 Reportes activos</h2>
+              <div class="sidebar-filters">
+                <select id="filter-category" aria-label="Filtrar por categoría">
+                  <option value="all">Todas las categorías</option>
+                  <option value="infraestructura">🕳️ Infraestructura</option>
+                  <option value="servicios">💡 Servicios</option>
+                  <option value="animales">🐕 Animales</option>
+                  <option value="salud">🩸 Salud</option>
+                  <option value="seguridad">🚨 Seguridad</option>
+                  <option value="otro">📍 Otro</option>
+                </select>
+              </div>
+              <div id="reports-list" class="reports-list"></div>
+            </div>
+          </aside>
+
+          <div class="map-container">
+            <div id="cartagena-map"></div>
+            <div class="map-controls">
+              <button type="button" id="toggle-heat" class="map-ctrl active" title="Mapa de calor">🔥 Calor</button>
+              <button type="button" id="toggle-markers" class="map-ctrl active" title="Marcadores">📍 Puntos</button>
+            </div>
+            <div class="map-legend">
+              <span class="legend-title">Intensidad:</span>
+              <span><i class="dot dot-low"></i> Baja</span>
+              <span><i class="dot dot-med"></i> Media</span>
+              <span><i class="dot dot-high"></i> Alta</span>
+              <span><i class="dot dot-crit"></i> Crítica</span>
+            </div>
+            <div class="map-click-hint logged-in-only" id="map-click-hint">
+              Clic en el mapa = ubicar tu reporte
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="site-auth"></div>
+
+  <script src="layout.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="app.js"></script>
+  <script src="map.js"></script>
+  <script src="ui.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

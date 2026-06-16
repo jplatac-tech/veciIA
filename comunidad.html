@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Índice de Impacto Social, beneficios para Colombia y el potencial de crecimiento de VeciIA.">
+  <title>Comunidad – VeciIA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="comunidad">
+  <div class="blob blob-mint" aria-hidden="true"></div>
+  <div class="blob blob-yellow" aria-hidden="true"></div>
+
+  <div id="site-header"></div>
+
+  <main class="page-main">
+    <section class="page-hero">
+      <div class="section-inner">
+        <span class="section-tag" data-reveal>Comunidad</span>
+        <h1 data-reveal data-delay="50">Juntos resolvemos los problemas de nuestro barrio</h1>
+        <p class="page-hero-desc" data-reveal data-delay="100">
+          VeciIA reconoce tu participación, beneficia a Colombia y crece desde Cartagena hacia toda Latinoamérica.
+        </p>
+      </div>
+    </section>
+
+    <!-- Actividad en tiempo real -->
+    <section class="section section-alt section-live">
+      <div class="section-inner">
+        <div class="live-header" data-reveal>
+          <div>
+            <span class="section-tag"><span class="live-pulse"></span> En vivo</span>
+            <h2>Lo que hace la comunidad ahora mismo</h2>
+            <p class="section-lead">Reportes, soluciones y acciones de vecinos en Cartagena.</p>
+          </div>
+          <div class="live-filters" id="activity-filters">
+            <button class="filter-chip active" data-filter="all">Todos</button>
+            <button class="filter-chip" data-filter="report">📍 Reportes</button>
+            <button class="filter-chip" data-filter="resolved">✅ Resueltos</button>
+            <button class="filter-chip" data-filter="story">⭐ Historias</button>
+          </div>
+        </div>
+
+        <div class="activity-gallery" data-reveal data-delay="100">
+          <button type="button" class="gallery-edge-btn gallery-edge-prev" id="gallery-prev" aria-label="Anterior">‹</button>
+          <button type="button" class="gallery-edge-btn gallery-edge-next" id="gallery-next" aria-label="Siguiente">›</button>
+          <div class="activity-track-wrap">
+            <div class="activity-track" id="activity-track"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Casos resueltos -->
+    <section class="section section-stories">
+      <div class="section-inner">
+        <div class="stories-header" data-reveal>
+          <div>
+            <span class="section-tag">Casos resueltos</span>
+            <h2>Problemas que la comunidad ya solucionó</h2>
+          </div>
+        </div>
+        <div class="stories-gallery" data-reveal data-delay="100">
+          <button type="button" class="gallery-edge-btn gallery-edge-prev" id="stories-prev" aria-label="Anterior">‹</button>
+          <button type="button" class="gallery-edge-btn gallery-edge-next" id="stories-next" aria-label="Siguiente">›</button>
+          <div class="stories-carousel-wrap">
+            <div class="stories-carousel" id="stories-grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zonas + ranking -->
+    <section class="section section-alt section-dashboard">
+      <div class="section-inner">
+        <div class="dashboard-grid">
+          <div class="dashboard-card" data-reveal>
+            <span class="section-tag">Zonas de calor</span>
+            <h2>Barrios con más reportes</h2>
+            <p class="dashboard-desc">La IA identifica dónde se concentran los problemas.</p>
+            <div class="zone-stats" id="zone-stats"></div>
+            <a href="mapa.html#reportar" class="btn-secondary btn-sm dashboard-link">Ver mapa de calor →</a>
+          </div>
+          <div class="dashboard-card dashboard-card-accent" data-reveal data-delay="100">
+            <span class="section-tag">Vecinos destacados</span>
+            <h2>Ranking de impacto</h2>
+            <p class="dashboard-desc">Los vecinos más activos de Cartagena.</p>
+            <div class="leaderboard" id="leaderboard"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-impact">
+      <div class="section-inner two-col">
+        <div class="impact-visual" data-reveal="left">
+          <div class="impact-badge" data-tilt>
+            <span class="impact-score">0</span>
+            <span class="impact-label">Índice de Impacto Social</span>
+            <div class="impact-progress">
+              <div class="impact-progress-fill"></div>
+            </div>
+          </div>
+          <div class="impact-levels">
+            <div class="level" role="button" tabindex="0"><span>🥉</span> Colaborador</div>
+            <div class="level active" role="button" tabindex="0"><span>🥈</span> Vecino activo</div>
+            <div class="level" role="button" tabindex="0"><span>🥇</span> Héroe del barrio</div>
+          </div>
+        </div>
+        <div class="col-text">
+          <span class="section-tag" data-reveal>Función innovadora</span>
+          <h2 data-reveal data-delay="50">Cada usuario obtiene un Índice de Impacto Social</h2>
+          <p data-reveal data-delay="100">Si ayudas a resolver problemas en tu comunidad, VeciIA te reconoce y recompensa tu participación.</p>
+          <ul class="impact-list">
+            <li data-reveal data-delay="150">
+              <span class="check">✓</span>
+              Ganas puntos por cada problema reportado o resuelto
+            </li>
+            <li data-reveal data-delay="200">
+              <span class="check">✓</span>
+              Obtienes reconocimientos visibles en tu perfil
+            </li>
+            <li data-reveal data-delay="250">
+              <span class="check">✓</span>
+              Empresas pueden ofrecer descuentos o beneficios a los ciudadanos más activos
+            </li>
+          </ul>
+          <a href="mapa.html" class="btn-primary" data-reveal data-delay="300" style="margin-top:24px;display:inline-flex">Empezar a ganar puntos</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="section-inner">
+        <span class="section-tag" data-reveal>Beneficios para Colombia</span>
+        <h2 data-reveal data-delay="50">Una herramienta pensada para nuestras comunidades</h2>
+        <div class="benefits-grid">
+          <div class="benefit-card" data-reveal data-delay="0" data-tilt>
+            <span class="benefit-check">✅</span>
+            <h3>Comunidades más organizadas</h3>
+            <p>Toda la información en un solo lugar, accesible para todos.</p>
+          </div>
+          <div class="benefit-card" data-reveal data-delay="100" data-tilt>
+            <span class="benefit-check">✅</span>
+            <h3>Soluciones más rápidas</h3>
+            <p>Menos tiempo perdido buscando a quién contactar.</p>
+          </div>
+          <div class="benefit-card" data-reveal data-delay="200" data-tilt>
+            <span class="benefit-check">✅</span>
+            <h3>Menos dependencia de WhatsApp</h3>
+            <p>Adiós a los mensajes que se pierden en grupos caóticos.</p>
+          </div>
+          <div class="benefit-card" data-reveal data-delay="300" data-tilt>
+            <span class="benefit-check">✅</span>
+            <h3>Mayor participación ciudadana</h3>
+            <p>Incentivos que motivan a más vecinos a involucrarse.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-growth">
+      <div class="section-inner growth-inner">
+        <div class="growth-text">
+          <span class="section-tag" data-reveal>Potencial de crecimiento</span>
+          <h2 data-reveal data-delay="50">De Cartagena a toda Latinoamérica</h2>
+          <p data-reveal data-delay="100">
+            Podría empezar en Cartagena y luego expandirse a toda Colombia y Latinoamérica.
+            La clave es que no sería una red social, sino una <strong>red de solución de problemas
+            comunitarios en tiempo real</strong>, algo que hoy no existe de forma masiva y bien integrada.
+          </p>
+          <div class="growth-timeline" data-reveal data-delay="150">
+            <div class="timeline-step active">
+              <span class="step-dot"></span>
+              <span>Cartagena</span>
+            </div>
+            <div class="timeline-line"></div>
+            <div class="timeline-step">
+              <span class="step-dot"></span>
+              <span>Colombia</span>
+            </div>
+            <div class="timeline-line"></div>
+            <div class="timeline-step">
+              <span class="step-dot"></span>
+              <span>Latinoamérica</span>
+            </div>
+          </div>
+        </div>
+        <div class="growth-map" data-reveal="right" data-delay="100">
+          <div class="map-pin pin-cartagena">
+            <span class="pin-dot"></span>
+            <span class="pin-label">Cartagena</span>
+          </div>
+          <div class="map-ring ring-1"></div>
+          <div class="map-ring ring-2"></div>
+          <div class="map-ring ring-3"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <div id="site-auth"></div>
+
+  <script src="layout.js"></script>
+  <script src="app.js"></script>
+  <script src="comunidad.js"></script>
+  <script src="ui.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
