@@ -45,8 +45,10 @@
     if (authTitle) authTitle.textContent = isRegister ? 'Crear cuenta' : 'Iniciar sesión';
     const nameField = document.getElementById('field-name');
     const barrioField = document.getElementById('field-barrio');
+    const phoneField = document.getElementById('field-phone');
     if (nameField) nameField.style.display = isRegister ? 'block' : 'none';
     if (barrioField) barrioField.style.display = isRegister ? 'block' : 'none';
+    if (phoneField) phoneField.style.display = isRegister ? 'block' : 'none';
     const nameInput = document.getElementById('auth-name');
     const barrioInput = document.getElementById('auth-barrio');
     if (nameInput) nameInput.required = isRegister;
@@ -83,6 +85,7 @@
             email: fd.get('email'),
             password: fd.get('password'),
             barrio: fd.get('barrio'),
+            phone: fd.get('phone'),
           });
           showToast('🎉 ¡Bienvenido a VeciIA!');
         } else {
@@ -123,11 +126,14 @@
       document.getElementById('sidebar-avatar') && (document.getElementById('sidebar-avatar').textContent = initial);
 
       const reports = VeciIA.getReports();
-      const score = VeciIA.calcImpact(user, reports);
-      const level = VeciIA.getImpactLevel(score);
+      const score = VeciIA.getUserPoints(user);
+      const level = VeciIA.getImpactLevel(VeciIA.calcImpact(user, reports));
       document.getElementById('user-impact') && (document.getElementById('user-impact').textContent = score);
       document.getElementById('user-level') && (document.getElementById('user-level').textContent = `${level.icon} ${level.name}`);
       document.querySelectorAll('.impact-score').forEach((el) => { el.textContent = score; });
+
+      const phoneInput = document.getElementById('report-phone');
+      if (phoneInput && user.phone && !phoneInput.value) phoneInput.value = user.phone;
     } else {
       if (userMenu) userMenu.style.display = 'none';
     }

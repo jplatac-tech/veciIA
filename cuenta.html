@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Tu cuenta VeciIA: puntos de impacto, canje en aliados y constancias de problemas resueltos.">
+  <title>Mi cuenta – VeciIA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="cuenta">
+  <div id="site-header"></div>
+
+  <main class="page-main">
+    <section class="page-hero">
+      <div class="section-inner">
+        <span class="section-tag">Mi cuenta</span>
+        <h1>Tu impacto en la comunidad</h1>
+        <p class="page-hero-desc">Consulta tus puntos, canjéalos en ofertas de aliados y revisa tus constancias de problemas resueltos.</p>
+      </div>
+    </section>
+
+    <section class="section" id="cuenta-guest">
+      <div class="section-inner cuenta-guest-box">
+        <p>Inicia sesión para ver tus puntos, canjear ofertas y gestionar tus reportes.</p>
+        <button type="button" class="btn-primary" data-open-auth="login">Iniciar sesión</button>
+        <button type="button" class="btn-secondary" data-open-auth="register">Crear cuenta</button>
+      </div>
+    </section>
+
+    <section class="section logged-in-only" id="cuenta-content">
+      <div class="section-inner cuenta-layout">
+        <aside class="cuenta-profile-card">
+          <div class="cuenta-avatar" id="cuenta-avatar">V</div>
+          <h2 id="cuenta-name">Vecino</h2>
+          <p class="cuenta-meta" id="cuenta-email">correo@ejemplo.com</p>
+          <p class="cuenta-meta" id="cuenta-barrio">Cartagena</p>
+          <div class="cuenta-points-box">
+            <span class="cuenta-points-label">Puntos disponibles</span>
+            <strong class="cuenta-points-value" id="cuenta-points">0</strong>
+            <small id="cuenta-level">🥉 Colaborador</small>
+          </div>
+          <form id="cuenta-profile-form" class="cuenta-profile-form">
+            <label for="cuenta-phone">WhatsApp de contacto</label>
+            <input type="tel" id="cuenta-phone" placeholder="Ej: 3207149637" maxlength="15">
+            <button type="submit" class="btn-secondary btn-sm btn-block">Guardar teléfono</button>
+          </form>
+          <a href="mapa.html#reportar" class="btn-primary btn-block js-report">Reportar en el mapa</a>
+        </aside>
+
+        <div class="cuenta-main">
+          <div class="cuenta-block">
+            <h2>🎁 Canjear puntos en aliados</h2>
+            <p class="section-lead cuenta-block-lead">Patrocinios de supermercados, farmacias y comercios locales. Canjea con tus puntos de impacto.</p>
+            <div id="offers-grid" class="offers-grid"></div>
+          </div>
+
+          <div class="cuenta-block">
+            <h2>📜 Constancias de solución</h2>
+            <p class="section-lead cuenta-block-lead">Problemas que marcaste como resueltos, con validación de quién ayudó.</p>
+            <div id="certificates-list" class="certificates-list"></div>
+          </div>
+
+          <div class="cuenta-block">
+            <h2>📋 Mis publicaciones</h2>
+            <div id="my-reports-list" class="my-reports-list"></div>
+          </div>
+
+          <div class="cuenta-block">
+            <h2>🛍️ Canjes realizados</h2>
+            <div id="redemptions-list" class="redemptions-list"></div>
+          </div>
+
+          <div class="cuenta-block cuenta-contacts">
+            <h2>📞 Mediadores VeciIA</h2>
+            <p class="section-lead cuenta-block-lead">Contacta a nuestro equipo para coordinar soluciones comunitarias.</p>
+            <div id="platform-contacts" class="platform-contacts"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="certificate-modal" class="cert-modal" aria-hidden="true">
+    <div class="cert-modal-content">
+      <button type="button" class="modal-close cert-modal-close" aria-label="Cerrar">&times;</button>
+      <div id="certificate-body"></div>
+      <div class="cert-modal-actions">
+        <button type="button" id="btn-share-cert-wa" class="btn-primary">Compartir por WhatsApp</button>
+        <button type="button" class="btn-secondary cert-modal-close-btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-footer"></div>
+  <div id="site-auth"></div>
+
+  <script src="layout.js"></script>
+  <script src="app.js"></script>
+  <script src="ui.js"></script>
+  <script src="cuenta.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

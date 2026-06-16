@@ -47,12 +47,21 @@
                   <small id="sidebar-user-barrio">Cartagena</small>
                 </div>
               </div>
-              <h2 class="sidebar-heading">➕ Reportar un problema</h2>
-              <p class="sidebar-hint">Completa el formulario y toca el mapa para marcar la ubicación.</p>
+              <h2 class="sidebar-heading">➕ Publicar en el mapa</h2>
+              <p class="sidebar-hint">Reporta un problema o comparte un aviso informativo (vía bloqueada, protesta, etc.).</p>
               <form id="report-form" class="report-form">
-                <label for="report-desc">Describe el problema</label>
-                <textarea id="report-desc" rows="3" placeholder="Ej: Hay una alcantarilla destapada…" required maxlength="300"></textarea>
+                <label for="report-type">Tipo de publicación</label>
+                <select id="report-type">
+                  <option value="problema">🔧 Problema a resolver</option>
+                  <option value="informativo">ℹ️ Aviso informativo</option>
+                </select>
+
+                <label for="report-desc">Descripción</label>
+                <textarea id="report-desc" rows="3" placeholder="Ej: Hay una alcantarilla destapada… / Vía bloqueada por protesta…" required maxlength="300"></textarea>
                 <p id="category-hint" class="category-hint" style="display:none"></p>
+
+                <label for="report-phone">WhatsApp de contacto</label>
+                <input type="tel" id="report-phone" placeholder="Ej: 3207149637" maxlength="15" required>
 
                 <label for="report-category">Categoría</label>
                 <select id="report-category">
@@ -62,16 +71,19 @@
                   <option value="animales">🐕 Animales</option>
                   <option value="salud">🩸 Salud / emergencia</option>
                   <option value="seguridad">🚨 Seguridad</option>
+                  <option value="informativo">ℹ️ Aviso informativo</option>
                   <option value="otro">📍 Otro</option>
                 </select>
 
-                <label for="report-urgency">Urgencia</label>
-                <select id="report-urgency">
-                  <option value="baja">Baja</option>
-                  <option value="media" selected>Media</option>
-                  <option value="alta">Alta</option>
-                  <option value="critica">Crítica</option>
-                </select>
+                <div id="urgency-field">
+                  <label for="report-urgency">Urgencia</label>
+                  <select id="report-urgency">
+                    <option value="baja">Baja</option>
+                    <option value="media" selected>Media</option>
+                    <option value="alta">Alta</option>
+                    <option value="critica">Crítica</option>
+                  </select>
+                </div>
 
                 <label>Ubicación en el mapa</label>
                 <p id="selected-coords" class="selected-coords">👆 Toca el mapa para marcar la ubicación</p>
@@ -94,6 +106,7 @@
                   <option value="animales">🐕 Animales</option>
                   <option value="salud">🩸 Salud</option>
                   <option value="seguridad">🚨 Seguridad</option>
+                  <option value="informativo">ℹ️ Informativos</option>
                   <option value="otro">📍 Otro</option>
                 </select>
               </div>
@@ -126,6 +139,33 @@
 
   <div id="site-footer"></div>
   <div id="site-auth"></div>
+
+  <div id="resolve-modal" class="resolve-modal" aria-hidden="true">
+    <div class="resolve-modal-content">
+      <button type="button" class="modal-close resolve-modal-close" aria-label="Cerrar">&times;</button>
+      <h3>Marcar problema como resuelto</h3>
+      <p class="resolve-modal-lead">Solo tú, como autor del reporte, puedes confirmar quién lo solucionó. Se generará una constancia.</p>
+      <form id="resolve-form">
+        <input type="hidden" id="resolve-report-id">
+        <label for="resolve-solver-name">¿Quién solucionó el problema?</label>
+        <input type="text" id="resolve-solver-name" placeholder="Nombre de la persona o entidad" required maxlength="80">
+        <label for="resolve-solver-phone">WhatsApp del solucionador (opcional)</label>
+        <input type="tel" id="resolve-solver-phone" placeholder="Ej: 3107051660" maxlength="15">
+        <button type="submit" class="btn-primary btn-block">Confirmar y generar constancia</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="certificate-modal" class="cert-modal" aria-hidden="true">
+    <div class="cert-modal-content">
+      <button type="button" class="modal-close cert-modal-close" aria-label="Cerrar">&times;</button>
+      <div id="certificate-body"></div>
+      <div class="cert-modal-actions">
+        <button type="button" id="btn-share-cert-wa" class="btn-primary">Compartir constancia por WhatsApp</button>
+        <button type="button" class="btn-secondary cert-modal-close-btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="layout.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>

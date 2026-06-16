@@ -6,6 +6,7 @@
     { id: 'plataforma', href: 'plataforma.html', label: 'Plataforma' },
     { id: 'mapa', href: 'mapa.html', label: 'Mapa' },
     { id: 'comunidad', href: 'comunidad.html', label: 'Comunidad' },
+    { id: 'cuenta', href: 'cuenta.html', label: 'Mi cuenta' },
   ];
 
   function logoSvg(size, uid) {
@@ -67,10 +68,11 @@
               </button>
               <div class="user-dropdown" id="user-dropdown">
                 <div class="dropdown-impact">
-                  <span>Índice de impacto</span>
+                  <span>Puntos disponibles</span>
                   <strong id="user-impact">0</strong>
                   <small id="user-level">🥉 Colaborador</small>
                 </div>
+                <a href="cuenta.html" class="dropdown-link">Ver mi cuenta</a>
                 <button id="btn-logout">Cerrar sesión</button>
               </div>
             </div>
@@ -136,6 +138,10 @@
                   <option value="Chambacú">Chambacú</option>
                   <option value="Otro">Otro</option>
                 </select>
+              </div>
+              <div class="form-field" id="field-phone" style="display:none">
+                <label for="auth-phone">WhatsApp (10 dígitos)</label>
+                <input type="tel" id="auth-phone" name="phone" placeholder="Ej: 3207149637" autocomplete="tel">
               </div>
               <div class="form-field">
                 <label for="auth-email">Correo electrónico</label>

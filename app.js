@@ -10,8 +10,29 @@
     animales: { label: 'Animales', icon: '🐕', keywords: ['perro', 'gato', 'mascota', 'animal', 'perdido'] },
     salud: { label: 'Salud / emergencia', icon: '🩸', keywords: ['sangre', 'ambulancia', 'hospital', 'medicina', 'paciente', 'emergencia'] },
     seguridad: { label: 'Seguridad', icon: '🚨', keywords: ['robo', 'inseguridad', 'violencia', 'policía'] },
+    informativo: { label: 'Aviso informativo', icon: 'ℹ️', keywords: ['vía bloqueada', 'protesta', 'manifestación', 'cierre', 'desvío', 'bloqueo', 'trancón', 'informativo'] },
     otro: { label: 'Otro', icon: '📍', keywords: [] },
   };
+
+  const REPORT_TYPES = {
+    problema: { label: 'Problema a resolver', icon: '🔧', points: 10 },
+    informativo: { label: 'Aviso informativo', icon: 'ℹ️', points: 5 },
+  };
+
+  const PLATFORM_CONTACTS = [
+    { name: 'Mediador VeciIA 1', phone: '573207149637' },
+    { name: 'Mediador VeciIA 2', phone: '573107051660' },
+    { name: 'Mediador VeciIA 3', phone: '573244144382' },
+  ];
+
+  const SPONSOR_OFFERS = [
+    { id: 'exito-10k', sponsor: 'Éxito', icon: '🛒', title: '$10.000 en mercado', cost: 100, desc: 'En compras superiores a $50.000. Válido 30 días.' },
+    { id: 'd1-5pct', sponsor: 'D1', icon: '🏪', title: '5% de descuento', cost: 80, desc: 'En productos de aseo y hogar.' },
+    { id: 'olimpica-15k', sponsor: 'Olímpica', icon: '🛍️', title: '$15.000 de descuento', cost: 150, desc: 'Patrocinio comunitario VeciIA.' },
+    { id: 'cafeteria', sponsor: 'Café del Barrio', icon: '☕', title: 'Bebida gratis', cost: 40, desc: 'Café o jugo en aliados del centro.' },
+    { id: 'farmatodo', sponsor: 'Farmatodo', icon: '💊', title: '10% medicamentos', cost: 120, desc: 'No incluye medicamentos controlados.' },
+    { id: 'transporte', sponsor: 'Movilidad Cartagena', icon: '🚌', title: '2 pasajes Transcaribe', cost: 60, desc: 'Patrocinio de movilidad comunitaria.' },
+  ];
 
   const URGENCY_WEIGHT = { baja: 0.4, media: 0.7, alta: 1.0, critica: 1.5 };
 
@@ -26,6 +47,7 @@
     { category: 'animales', description: 'Perro perdido cerca del parque', lat: 10.4150, lng: -75.5350, urgency: 'media', userName: 'Ana L.', barrio: 'Manga' },
     { category: 'animales', description: 'Gato atropellado necesita ayuda', lat: 10.4153, lng: -75.5346, urgency: 'alta', userName: 'Elena R.', barrio: 'Manga' },
     { category: 'infraestructura', description: 'Vía bloqueada por construcción', lat: 10.3992, lng: -75.5544, urgency: 'alta', userName: 'Pedro M.', barrio: 'Bocagrande' },
+    { category: 'informativo', type: 'informativo', description: 'Vía bloqueada por protesta en avenida Santander', lat: 10.4250, lng: -75.5480, urgency: 'media', userName: 'Laura M.', barrio: 'Centro', phone: '573001234567' },
     { category: 'servicios', description: 'Semáforo dañado en avenida principal', lat: 10.3998, lng: -75.5538, urgency: 'alta', userName: 'Valentina C.', barrio: 'Bocagrande' },
     { category: 'salud', description: 'Se necesita sangre O+ urgente', lat: 10.4120, lng: -75.5120, urgency: 'critica', userName: 'Lucía V.', barrio: 'San Francisco' },
     { category: 'salud', description: 'Adulto mayor necesita medicamentos', lat: 10.4124, lng: -75.5116, urgency: 'alta', userName: 'Marta D.', barrio: 'San Francisco' },
@@ -68,13 +90,29 @@
       data = {
         users: [],
         reports: buildSeedReports(),
+        certificates: [],
+        redemptions: [],
       };
       regroupReports(data.reports);
       saveData(data);
     } else {
       ensureRichSeedData(data);
+      migrateData(data);
     }
     return data;
+  }
+
+  function migrateData(data) {
+    if (!data.certificates) data.certificates = [];
+    if (!data.redemptions) data.redemptions = [];
+    data.reports.forEach((r) => {
+      if (!r.type) r.type = r.category === 'informativo' ? 'informativo' : 'problema';
+      if (!r.phone) r.phone = '';
+    });
+    data.users.forEach((u) => {
+      if (!u.phone) u.phone = '';
+    });
+    saveData(data);
   }
 
   function buildSeedReports() {
@@ -84,13 +122,17 @@
       userName: r.userName,
       barrio: r.barrio,
       category: r.category,
+      type: r.type || 'problema',
       description: r.description,
       lat: r.lat,
       lng: r.lng,
       urgency: r.urgency,
+      phone: r.phone || '',
       status: i % 5 === 0 ? 'resolved' : 'open',
       createdAt: Date.now() - (i + 1) * 3600000 * 4,
       groupId: null,
+      solverName: i % 5 === 0 ? 'Vecino colaborador' : null,
+      certificateId: i % 5 === 0 ? 'VEC-SEED-' + i : null,
     }));
   }
 
@@ -107,10 +149,12 @@
           userName: r.userName,
           barrio: r.barrio,
           category: r.category,
+          type: r.type || 'problema',
           description: r.description,
           lat: r.lat,
           lng: r.lng,
           urgency: r.urgency,
+          phone: r.phone || '',
           status: i % 5 === 0 ? 'resolved' : 'open',
           createdAt: Date.now() - (i + 1) * 3600000 * 4,
           groupId: null,
@@ -170,9 +214,35 @@
   function calcImpact(user, reports) {
     let score = 0;
     const userReports = reports.filter((r) => r.userId === user.id);
-    score += userReports.length * 10;
+    userReports.forEach((r) => {
+      score += r.type === 'informativo' ? 5 : 10;
+    });
     score += userReports.filter((r) => r.status === 'resolved').length * 25;
+    const solved = reports.filter((r) => r.solverUserId === user.id && r.status === 'resolved');
+    score += solved.length * 30;
     return score;
+  }
+
+  function getUserPoints(user) {
+    if (!user) return 0;
+    const earned = calcImpact(user, data.reports);
+    const spent = (data.redemptions || [])
+      .filter((r) => r.userId === user.id)
+      .reduce((s, r) => s + r.cost, 0);
+    return Math.max(0, earned - spent);
+  }
+
+  function normalizePhone(phone) {
+    if (!phone) return '';
+    return phone.replace(/\D/g, '').replace(/^57/, '').slice(-10);
+  }
+
+  function whatsAppLink(phone, message) {
+    const digits = normalizePhone(phone);
+    if (!digits) return null;
+    const full = digits.length === 10 ? '57' + digits : digits;
+    const text = encodeURIComponent(message || 'Hola, te contacto desde VeciIA sobre un reporte de barrio.');
+    return `https://wa.me/${full}?text=${text}`;
   }
 
   const data = initData();
@@ -196,7 +266,7 @@
     return data.users.find((u) => u.id === sessionUserId) || null;
   }
 
-  function register({ name, email, password, barrio }) {
+  function register({ name, email, password, barrio, phone }) {
     if (!name || !email || !password || !barrio) {
       throw new Error('Completa todos los campos.');
     }
@@ -212,6 +282,7 @@
       email: email.trim().toLowerCase(),
       password,
       barrio: barrio.trim(),
+      phone: normalizePhone(phone || ''),
       createdAt: Date.now(),
     };
     data.users.push(user);
@@ -239,49 +310,155 @@
     emit('auth', { user: null });
   }
 
-  function createReport({ description, category, urgency, lat, lng }) {
+  function createReport({ description, category, urgency, lat, lng, type, phone }) {
     const user = getSessionUser();
     if (!user) throw new Error('Debes iniciar sesión para reportar.');
+
+    const reportType = type === 'informativo' ? 'informativo' : 'problema';
+    const reportPhone = normalizePhone(phone || user.phone);
+    if (!reportPhone) throw new Error('Indica un número de WhatsApp para que te contacten.');
+
+    let finalCategory = category || detectCategory(description);
+    if (reportType === 'informativo') {
+      finalCategory = category === 'auto' || !category ? detectCategory(description) : category;
+      if (finalCategory === 'otro') finalCategory = 'informativo';
+    } else if (category === 'auto') {
+      finalCategory = detectCategory(description);
+    }
 
     const report = {
       id: uid(),
       userId: user.id,
       userName: user.name,
       barrio: user.barrio,
-      category: category || detectCategory(description),
+      category: finalCategory,
+      type: reportType,
       description: description.trim(),
       lat,
       lng,
-      urgency: urgency || 'media',
+      urgency: urgency || (reportType === 'informativo' ? 'baja' : 'media'),
+      phone: reportPhone,
       status: 'open',
       createdAt: Date.now(),
       groupId: null,
     };
 
     data.reports.unshift(report);
-    regroupReports(data.reports);
+    if (reportType === 'problema') regroupReports(data.reports);
     saveData(data);
     emit('reports', { reports: data.reports, newReport: report });
     emit('auth', { user: getSessionUser() });
     return report;
   }
 
-  function resolveReport(reportId) {
+  function resolveReportAsAuthor(reportId, { solverName, solverPhone, solverUserId }) {
     const user = getSessionUser();
     if (!user) throw new Error('Debes iniciar sesión.');
 
     const report = data.reports.find((r) => r.id === reportId);
     if (!report) throw new Error('Reporte no encontrado.');
+    if (report.userId !== user.id) throw new Error('Solo quien publicó el reporte puede confirmar la solución.');
     if (report.status === 'resolved') throw new Error('Ya está resuelto.');
+    if (report.type === 'informativo') throw new Error('Los avisos informativos no requieren resolución.');
+    if (!solverName || !solverName.trim()) throw new Error('Indica quién solucionó el problema.');
 
+    const certId = 'VEC-' + Date.now().toString(36).toUpperCase();
     report.status = 'resolved';
-    report.resolvedBy = user.id;
     report.resolvedAt = Date.now();
+    report.solverName = solverName.trim();
+    report.solverPhone = solverPhone ? normalizePhone(solverPhone) : '';
+    report.solverUserId = solverUserId || null;
+    report.certificateId = certId;
+
+    const certificate = {
+      id: certId,
+      reportId: report.id,
+      authorId: user.id,
+      authorName: user.name,
+      authorPhone: report.phone,
+      solverName: report.solverName,
+      solverPhone: report.solverPhone,
+      description: report.description,
+      barrio: report.barrio,
+      category: report.category,
+      createdAt: Date.now(),
+    };
+
+    if (!data.certificates) data.certificates = [];
+    data.certificates.unshift(certificate);
     regroupReports(data.reports);
     saveData(data);
-    emit('reports', { reports: data.reports });
+    emit('reports', { reports: data.reports, certificate });
     emit('auth', { user: getSessionUser() });
-    return report;
+    return { report, certificate };
+  }
+
+  function getCertificate(certId) {
+    return (data.certificates || []).find((c) => c.id === certId) || null;
+  }
+
+  function getUserCertificates(userId) {
+    return (data.certificates || []).filter((c) => c.authorId === userId || c.solverUserId === userId);
+  }
+
+  function getCertificateMessage(cert) {
+    const date = new Date(cert.createdAt).toLocaleDateString('es-CO', { dateStyle: 'long' });
+    return [
+      '✅ *Constancia VeciIA – Problema resuelto*',
+      '',
+      `📋 ID: ${cert.id}`,
+      `📅 Fecha: ${date}`,
+      `📍 Barrio: ${cert.barrio}`,
+      `📝 Reporte: ${cert.description}`,
+      `👤 Publicado por: ${cert.authorName}`,
+      `🦸 Solucionado por: ${cert.solverName}`,
+      '',
+      'Validado en la plataforma comunitaria VeciIA – Cartagena.',
+    ].join('\n');
+  }
+
+  function redeemOffer(offerId) {
+    const user = getSessionUser();
+    if (!user) throw new Error('Debes iniciar sesión.');
+    const offer = SPONSOR_OFFERS.find((o) => o.id === offerId);
+    if (!offer) throw new Error('Oferta no encontrada.');
+    const points = getUserPoints(user);
+    if (points < offer.cost) {
+      throw new Error(`Necesitas ${offer.cost} pts. Tienes ${points} pts disponibles.`);
+    }
+    const redemption = {
+      id: uid(),
+      userId: user.id,
+      offerId: offer.id,
+      sponsor: offer.sponsor,
+      title: offer.title,
+      cost: offer.cost,
+      code: 'VECI-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+      createdAt: Date.now(),
+    };
+    if (!data.redemptions) data.redemptions = [];
+    data.redemptions.push(redemption);
+    saveData(data);
+    emit('auth', { user: getSessionUser() });
+    return { redemption, offer };
+  }
+
+  function getUserRedemptions(userId) {
+    return (data.redemptions || []).filter((r) => r.userId === userId).sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  function getUserReports(userId) {
+    return data.reports.filter((r) => r.userId === userId).sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  function updateUserProfile({ phone, barrio }) {
+    const user = getSessionUser();
+    if (!user) throw new Error('Debes iniciar sesión.');
+    if (phone !== undefined) user.phone = normalizePhone(phone);
+    if (barrio) user.barrio = barrio.trim();
+    saveData(data);
+    emit('auth', { user: getSessionUser() });
+    return user;
   }
 
   function getReports(filter = {}) {
@@ -305,7 +482,7 @@
   }
 
   function getHeatPoints(filter = {}) {
-    let open = data.reports.filter((r) => r.status === 'open');
+    let open = data.reports.filter((r) => r.status === 'open' && r.type !== 'informativo');
     if (filter.category) open = open.filter((r) => r.category === filter.category);
 
     return open.map((r) => {
@@ -399,6 +576,9 @@
 
   window.VeciIA = {
     CATEGORIES,
+    REPORT_TYPES,
+    SPONSOR_OFFERS,
+    PLATFORM_CONTACTS,
     URGENCY_WEIGHT,
     on,
     register,
@@ -406,7 +586,7 @@
     logout,
     getSessionUser,
     createReport,
-    resolveReport,
+    resolveReportAsAuthor,
     getReports,
     getGroupCount,
     getStats,
@@ -416,6 +596,16 @@
     getTopNeighbors,
     getImpactLevel,
     calcImpact,
+    getUserPoints,
+    getUserReports,
+    getUserRedemptions,
+    getUserCertificates,
+    getCertificate,
+    getCertificateMessage,
+    redeemOffer,
+    updateUserProfile,
+    whatsAppLink,
+    normalizePhone,
     detectCategory,
     CARTAGENA_CENTER: [10.391, -75.512],
     CARTAGENA_BOUNDS: [[10.32, -75.58], [10.48, -75.44]],

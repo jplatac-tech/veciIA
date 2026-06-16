@@ -2591,6 +2591,24 @@ body[data-page="mapa"] .leaflet-container {
   color: #ef4444;
 }
 
+.dropdown-link {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: var(--green);
+  color: white !important;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.dropdown-link:hover {
+  background: var(--green-dark);
+}
+
 /* ── Map section ── */
 .map-section-inner {
   max-width: 1280px;
@@ -3082,6 +3100,444 @@ body.logged-in .btn-submit-report {
   font-size: 0.8rem;
   color: var(--green-dark);
   font-weight: 600;
+}
+
+.popup-type {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.popup-contacts {
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.popup-wa-btn {
+  display: block;
+  text-align: center;
+  padding: 8px 12px;
+  background: #25d366;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.popup-mediators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.popup-mediators small {
+  width: 100%;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.popup-wa-link {
+  font-size: 0.72rem;
+  color: var(--green-dark);
+  text-decoration: none;
+  padding: 4px 8px;
+  background: var(--bg-alt);
+  border-radius: 8px;
+}
+
+.popup-resolved-box {
+  background: #f0fdf4;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.popup-info-badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.report-form input[type="tel"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+/* Resolve & certificate modals */
+.resolve-modal,
+.cert-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+
+.resolve-modal.open,
+.cert-modal.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.resolve-modal-content,
+.cert-modal-content {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 440px;
+  width: 100%;
+  max-height: 90svh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.resolve-modal-lead {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.resolve-modal-content label,
+.cert-modal-content label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 12px 0 6px;
+}
+
+.resolve-modal-content input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-family: var(--font);
+}
+
+.cert-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.cert-document {
+  border: 2px solid var(--green);
+  border-radius: 12px;
+  padding: 20px;
+  background: linear-gradient(180deg, #f0fdf4 0%, #fff 100%);
+}
+
+.cert-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cert-doc-logo {
+  font-weight: 800;
+  color: var(--green-dark);
+  font-size: 1.1rem;
+}
+
+.cert-doc-badge {
+  font-size: 0.75rem;
+  background: var(--green);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.cert-doc-details {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+}
+
+.cert-doc-details div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+}
+
+.cert-doc-details dt {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cert-doc-footer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+
+/* ── Cuenta page ── */
+body[data-page="cuenta"] .page-hero {
+  padding-bottom: 16px;
+}
+
+.cuenta-guest-box {
+  text-align: center;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 32px;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+}
+
+.cuenta-guest-box p {
+  margin-bottom: 20px;
+  color: var(--text-muted);
+}
+
+body.logged-in #cuenta-guest {
+  display: none !important;
+}
+
+.cuenta-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.cuenta-profile-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+  position: sticky;
+  top: calc(var(--header-h) + 16px);
+}
+
+.cuenta-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.cuenta-profile-card h2 {
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+
+.cuenta-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.cuenta-points-box {
+  background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+  border: 1px solid rgba(46, 204, 113, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.cuenta-points-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.cuenta-points-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--green-dark);
+  line-height: 1.1;
+}
+
+.cuenta-profile-form {
+  margin-bottom: 16px;
+}
+
+.cuenta-profile-form label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.cuenta-profile-form input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  font-family: var(--font);
+}
+
+.cuenta-block {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: clamp(20px, 3vw, 28px);
+  box-shadow: var(--card-shadow);
+  margin-bottom: 20px;
+}
+
+.cuenta-block h2 {
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+}
+
+.cuenta-block-lead {
+  margin-bottom: 20px !important;
+  font-size: 0.9rem !important;
+}
+
+.offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.offer-card {
+  border: 1px solid #eee;
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.offer-icon {
+  font-size: 1.75rem;
+}
+
+.offer-sponsor {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  text-transform: uppercase;
+}
+
+.offer-card h3 {
+  font-size: 1rem;
+}
+
+.offer-card p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.offer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.offer-cost {
+  font-weight: 700;
+  color: var(--coral);
+  font-size: 0.9rem;
+}
+
+.certificates-list,
+.my-reports-list,
+.redemptions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cert-card,
+.my-report-card,
+.redemption-card {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.cert-card-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.cert-card-meta,
+.my-report-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.my-report-type {
+  font-size: 0.75rem;
+  color: #2563eb;
+}
+
+.redemption-code {
+  display: block;
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: var(--bg-alt);
+  border-radius: 8px;
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+
+.platform-contacts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-wa-btn {
+  display: block;
+  padding: 12px 16px;
+  background: #25d366;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .cuenta-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cuenta-profile-card {
+    position: static;
+  }
 }
 
 /* Toast */

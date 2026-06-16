@@ -131,29 +131,102 @@
 
   function buildPopup(report) {
     const cat = VeciIA.CATEGORIES[report.category] || VeciIA.CATEGORIES.otro;
+    const typeInfo = VeciIA.REPORT_TYPES[report.type] || VeciIA.REPORT_TYPES.problema;
     const groupCount = VeciIA.getGroupCount(report);
     const groupHtml = groupCount > 1
       ? `<p class="popup-group">🤖 IA: ${groupCount} reportes similares agrupados</p>`
       : '';
-    const statusHtml = report.status === 'resolved'
-      ? '<span class="popup-status resolved">✅ Resuelto</span>'
-      : `<button class="popup-resolve" data-id="${report.id}">Marcar resuelto (+25 pts)</button>`;
     const user = VeciIA.getSessionUser();
-    const canResolve = user && report.status === 'open';
+    const isAuthor = user && report.userId === user.id;
+    const isInformativo = report.type === 'informativo';
+
+    const contactMsg = `Hola ${report.userName}, vi tu reporte en VeciIA: "${report.description.slice(0, 100)}" y quiero ayudar.`;
+    const waAuthor = report.phone ? VeciIA.whatsAppLink(report.phone, contactMsg) : null;
+
+    let contactHtml = '';
+    if (waAuthor) {
+      contactHtml += `<a href="${waAuthor}" target="_blank" rel="noopener" class="popup-wa-btn">💬 Contactar a ${escapeHtml(report.userName)}</a>`;
+    }
+    contactHtml += '<div class="popup-mediators"><small>Mediadores VeciIA:</small>';
+    VeciIA.PLATFORM_CONTACTS.forEach((c) => {
+      const wa = VeciIA.whatsAppLink(c.phone, `Hola, apoyo con reporte de ${report.userName}: ${report.description.slice(0, 80)}`);
+      contactHtml += `<a href="${wa}" target="_blank" rel="noopener" class="popup-wa-link">${escapeHtml(c.name)}</a>`;
+    });
+    contactHtml += '</div>';
+
+    let actionHtml = '';
+    if (report.status === 'resolved') {
+      actionHtml = `
+        <div class="popup-resolved-box">
+          <p>✅ Resuelto por <strong>${escapeHtml(report.solverName || '—')}</strong></p>
+          ${report.certificateId ? `<button type="button" class="popup-view-cert btn-secondary btn-sm" data-cert="${report.certificateId}">Ver constancia</button>` : ''}
+        </div>`;
+    } else if (!isInformativo && isAuthor) {
+      actionHtml = `<button type="button" class="popup-resolve-open btn-primary btn-sm" data-id="${report.id}">Marcar como resuelto</button>`;
+    } else if (isInformativo) {
+      actionHtml = '<span class="popup-info-badge">ℹ️ Aviso informativo</span>';
+    }
 
     return `
       <div class="map-popup">
         <div class="popup-header">
           <span class="popup-icon">${cat.icon}</span>
           <span class="popup-cat">${cat.label}</span>
-          <span class="popup-urgency urgency-${report.urgency}">${report.urgency}</span>
+          <span class="popup-type">${typeInfo.icon} ${typeInfo.label}</span>
+          ${!isInformativo ? `<span class="popup-urgency urgency-${report.urgency}">${report.urgency}</span>` : ''}
         </div>
         <p class="popup-desc">${escapeHtml(report.description)}</p>
-        <p class="popup-meta">${escapeHtml(report.userName)} · ${escapeHtml(report.barrio)}</p>
+        <p class="popup-meta">👤 Publicado por <strong>${escapeHtml(report.userName)}</strong> · ${escapeHtml(report.barrio)}</p>
         ${groupHtml}
-        ${canResolve ? statusHtml : (report.status === 'resolved' ? '<span class="popup-status resolved">✅ Resuelto</span>' : '')}
+        <div class="popup-contacts">${contactHtml}</div>
+        ${actionHtml}
       </div>
     `;
+  }
+
+  function openResolveModal(reportId) {
+    const modal = document.getElementById('resolve-modal');
+    document.getElementById('resolve-report-id').value = reportId;
+    document.getElementById('resolve-solver-name').value = '';
+    document.getElementById('resolve-solver-phone').value = '';
+    modal?.classList.add('open');
+    modal?.setAttribute('aria-hidden', 'false');
+    map.closePopup();
+  }
+
+  function closeResolveModal() {
+    const modal = document.getElementById('resolve-modal');
+    modal?.classList.remove('open');
+    modal?.setAttribute('aria-hidden', 'true');
+  }
+
+  function openCertificateModal(certId) {
+    const cert = VeciIA.getCertificate(certId);
+    if (!cert) return;
+    const modal = document.getElementById('certificate-modal');
+    const body = document.getElementById('certificate-body');
+    if (!modal || !body) return;
+
+    body.innerHTML = `
+      <div class="cert-document">
+        <div class="cert-doc-header"><span class="cert-doc-logo">VeciIA</span><span class="cert-doc-badge">Constancia</span></div>
+        <h3>Problema resuelto</h3>
+        <p class="cert-doc-id">ID: <strong>${escapeHtml(cert.id)}</strong></p>
+        <p><strong>Reporte:</strong> ${escapeHtml(cert.description)}</p>
+        <p><strong>Publicado por:</strong> ${escapeHtml(cert.authorName)}</p>
+        <p><strong>Solucionado por:</strong> ${escapeHtml(cert.solverName)}</p>
+        <p><strong>Fecha:</strong> ${new Date(cert.createdAt).toLocaleDateString('es-CO', { dateStyle: 'long' })}</p>
+      </div>`;
+
+    modal.dataset.certId = certId;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeCertificateModal() {
+    const modal = document.getElementById('certificate-modal');
+    modal?.classList.remove('open');
+    modal?.setAttribute('aria-hidden', 'true');
   }
 
   function escapeHtml(str) {
@@ -213,16 +286,17 @@
     if (markersVisible) {
       reports.forEach((report) => {
         if (report.status === 'resolved' && activeFilter === 'all') return;
-        const color = urgencyColors[report.urgency] || '#ff5a43';
+        const isInfo = report.type === 'informativo';
+        const color = isInfo ? '#3498db' : (urgencyColors[report.urgency] || '#ff5a43');
         const marker = L.circleMarker([report.lat, report.lng], {
-          radius: report.urgency === 'critica' ? 10 : 8,
+          radius: isInfo ? 9 : (report.urgency === 'critica' ? 10 : 8),
           fillColor: color,
           color: '#fff',
           weight: 2,
           opacity: 1,
           fillOpacity: heatVisible ? 0.7 : 0.9,
         });
-        marker.bindPopup(buildPopup(report), { maxWidth: 280, className: 'veciia-popup' });
+        marker.bindPopup(buildPopup(report), { maxWidth: 300, className: 'veciia-popup' });
         markersLayer.addLayer(marker);
       });
     }
@@ -244,12 +318,13 @@
     list.innerHTML = open.map((r) => {
       const cat = VeciIA.CATEGORIES[r.category] || VeciIA.CATEGORIES.otro;
       const group = VeciIA.getGroupCount(r);
+      const typeTag = r.type === 'informativo' ? 'ℹ️ ' : '';
       return `
         <button class="report-item" data-lat="${r.lat}" data-lng="${r.lng}" data-id="${r.id}">
           <span class="report-item-icon">${cat.icon}</span>
           <div class="report-item-body">
-            <strong>${escapeHtml(r.description.slice(0, 60))}${r.description.length > 60 ? '…' : ''}</strong>
-            <span>${escapeHtml(r.barrio)} · ${r.urgency}${group > 1 ? ` · 🤖 ×${group}` : ''}</span>
+            <strong>${typeTag}${escapeHtml(r.description.slice(0, 60))}${r.description.length > 60 ? '…' : ''}</strong>
+            <span>${escapeHtml(r.userName)} · ${escapeHtml(r.barrio)}${group > 1 ? ` · 🤖 ×${group}` : ''}</span>
           </div>
         </button>
       `;
@@ -304,17 +379,63 @@
     );
   }
 
-  /* Controls */
+  /* Controls & popups */
   document.getElementById('cartagena-map')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.popup-resolve');
-    if (!btn) return;
+    const resolveBtn = e.target.closest('.popup-resolve-open');
+    if (resolveBtn) {
+      openResolveModal(resolveBtn.dataset.id);
+      return;
+    }
+    const certBtn = e.target.closest('.popup-view-cert');
+    if (certBtn) {
+      openCertificateModal(certBtn.dataset.cert);
+    }
+  });
+
+  document.getElementById('resolve-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const reportId = document.getElementById('resolve-report-id').value;
+    const solverName = document.getElementById('resolve-solver-name').value;
+    const solverPhone = document.getElementById('resolve-solver-phone').value;
     try {
-      VeciIA.resolveReport(btn.dataset.id);
-      map.closePopup();
-      showToast('✅ Problema marcado como resuelto (+25 pts)');
+      const { certificate } = VeciIA.resolveReportAsAuthor(reportId, { solverName, solverPhone });
+      closeResolveModal();
+      refreshMap();
+      showToast('✅ Problema resuelto. Constancia generada.');
+      openCertificateModal(certificate.id);
     } catch (err) {
       alert(err.message);
     }
+  });
+
+  document.querySelectorAll('.resolve-modal-close').forEach((btn) => {
+    btn.addEventListener('click', closeResolveModal);
+  });
+  document.getElementById('resolve-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'resolve-modal') closeResolveModal();
+  });
+
+  document.getElementById('btn-share-cert-wa')?.addEventListener('click', () => {
+    const modal = document.getElementById('certificate-modal');
+    const certId = modal?.dataset.certId;
+    if (!certId) return;
+    const cert = VeciIA.getCertificate(certId);
+    if (!cert) return;
+    const wa = VeciIA.whatsAppLink(cert.authorPhone || VeciIA.PLATFORM_CONTACTS[0].phone, VeciIA.getCertificateMessage(cert));
+    if (wa) window.open(wa, '_blank', 'noopener');
+  });
+  document.querySelectorAll('.cert-modal-close, .cert-modal-close-btn').forEach((btn) => {
+    btn.addEventListener('click', closeCertificateModal);
+  });
+  document.getElementById('certificate-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'certificate-modal') closeCertificateModal();
+  });
+
+  document.getElementById('report-type')?.addEventListener('change', (e) => {
+    const isInfo = e.target.value === 'informativo';
+    document.getElementById('urgency-field').style.display = isInfo ? 'none' : 'block';
+    const submit = document.querySelector('.btn-submit-report');
+    if (submit) submit.textContent = isInfo ? 'Publicar aviso (+5 pts)' : 'Enviar reporte (+10 pts)';
   });
 
   document.getElementById('toggle-heat')?.addEventListener('click', function () {
@@ -343,6 +464,8 @@
     const desc = document.getElementById('report-desc').value;
     const category = document.getElementById('report-category').value;
     const urgency = document.getElementById('report-urgency').value;
+    const type = document.getElementById('report-type').value;
+    const phone = document.getElementById('report-phone').value;
     const loc = getSelectedLocation();
 
     if (!loc) {
@@ -356,13 +479,19 @@
         description: desc,
         category: finalCategory,
         urgency,
+        type,
+        phone,
         lat: loc.lat,
         lng: loc.lng,
       });
       e.target.reset();
       clearSelectedLocation();
       document.getElementById('report-category').value = 'auto';
-      showToast('✅ Reporte enviado. La IA lo agrupó automáticamente.');
+      document.getElementById('report-type').value = 'problema';
+      document.getElementById('urgency-field').style.display = 'block';
+      document.querySelector('.btn-submit-report').textContent = 'Enviar reporte (+10 pts)';
+      const msg = type === 'informativo' ? 'ℹ️ Aviso publicado en el mapa.' : '✅ Reporte enviado. La IA lo agrupó automáticamente.';
+      showToast(msg);
       document.getElementById('reports-list')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (err) {
       alert(err.message);
