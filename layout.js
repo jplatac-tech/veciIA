@@ -27,7 +27,6 @@
   }
 
   const LOGO_MARK = logoSvg(32, 'h');
-  const LOGO_MARK_SM = logoSvg(24, 'f');
 
   const currentPage = document.body.dataset.page || 'index';
 
@@ -49,7 +48,6 @@
           </a>
           <nav class="nav" aria-label="Navegación principal">
             <div class="nav-drawer-head">
-              <span class="nav-drawer-brand">${LOGO_MARK_SM}<span>Veci<span class="logo-ia">IA</span></span></span>
               <p class="nav-drawer-tagline">Problemas de barrio, soluciones en comunidad</p>
             </div>
             <div class="nav-links-group">${links}</div>
@@ -96,15 +94,11 @@
     el.innerHTML = `
       <footer class="footer">
         <div class="footer-inner">
-          <a href="index.html" class="logo">
-            <span class="logo-icon">${LOGO_MARK_SM}</span>
-            <span class="logo-text">Veci<span class="logo-ia">IA</span></span>
-          </a>
           <nav class="footer-nav" aria-label="Enlaces del pie">
             ${NAV.map((item) => `<a href="${item.href}">${item.label}</a>`).join('')}
             <a href="mapa.html#reportar" class="footer-report js-report">Reportar</a>
           </nav>
-          <p>© 2026 VeciIA – los Problemas de Barrio. Todos los derechos reservados.</p>
+          <p class="footer-copy">© 2026 VeciIA. Todos los derechos reservados.</p>
         </div>
       </footer>`;
   }

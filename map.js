@@ -31,8 +31,10 @@
       maxZoom: 19,
     }).addTo(map);
 
-    heatLayer = createHeatLayer([]);
-    map.addLayer(heatLayer);
+    if (typeof L.heatLayer === 'function') {
+      heatLayer = createHeatLayer([]);
+      map.addLayer(heatLayer);
+    }
 
     markersLayer = L.layerGroup().addTo(map);
 
@@ -40,8 +42,48 @@
     map.on('zoomend', () => updateHeatLayer());
     refreshMap();
 
-    setTimeout(() => map.invalidateSize(), 300);
+    const fixSize = () => map?.invalidateSize(true);
+    fixSize();
+    setTimeout(fixSize, 100);
+    setTimeout(fixSize, 400);
+    setTimeout(fixSize, 1000);
+
+    const mapContainer = mapEl.closest('.map-container');
+    let resizeTimer;
+    const onResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fixSize, 150);
+    };
+    window.addEventListener('resize', onResize, { passive: true });
+    window.addEventListener('load', fixSize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(fixSize, 400);
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) setTimeout(fixSize, 200);
+    });
+    if (mapContainer && typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(onResize).observe(mapContainer);
+    }
+
+    VeciIA.on('reports', () => refreshMap());
   }
+
+  function bootMap() {
+    if (!mapEl || typeof L === 'undefined' || typeof VeciIA === 'undefined' || map) return;
+    try {
+      initMap();
+    } catch (err) {
+      console.error('VeciIA map init error:', err);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootMap);
+  } else {
+    bootMap();
+  }
+  window.addEventListener('load', bootMap);
 
   function onMapClick(e) {
     if (!document.body.classList.contains('logged-in')) return;
@@ -81,7 +123,7 @@
     }
     const coordsEl = document.getElementById('selected-coords');
     if (coordsEl) {
-      coordsEl.textContent = '👆 Haz clic en el mapa de la derecha';
+      coordsEl.textContent = '👆 Toca el mapa para marcar la ubicación';
       coordsEl.classList.remove('has-coords');
     }
     document.getElementById('map-click-hint')?.classList.remove('placed');
@@ -140,11 +182,12 @@
   }
 
   function createHeatLayer(points) {
+    if (typeof L.heatLayer !== 'function') return null;
     return L.heatLayer(points, heatOptions());
   }
 
   function updateHeatLayer() {
-    if (!map || !heatVisible) return;
+    if (!map || !heatVisible || typeof L.heatLayer !== 'function') return;
     const filter = activeFilter === 'all' ? {} : { category: activeFilter };
     const points = VeciIA.getHeatPoints(filter);
     if (heatLayer) map.removeLayer(heatLayer);
@@ -359,18 +402,12 @@
     setTimeout(() => desc?.focus(), 400);
   }
 
-  VeciIA.on('reports', () => refreshMap());
-
-  if (mapEl && typeof L !== 'undefined' && typeof VeciIA !== 'undefined') {
-    initMap();
-  }
-
   window.VeciIAMap = {
     setSelectedLocation,
     clearSelectedLocation,
     refreshMap,
     focusReportForm,
     showToast,
-    invalidate: () => map?.invalidateSize(),
+    invalidate: () => map?.invalidateSize(true),
   };
 })();

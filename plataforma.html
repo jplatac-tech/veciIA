@@ -19,15 +19,20 @@
   <div id="site-header"></div>
 
   <main class="page-main">
-    <section class="page-hero">
-      <div class="section-inner">
-        <span class="section-tag" data-reveal>Plataforma</span>
-        <h1 data-reveal data-delay="50">Tu barrio conectado, organizado y resuelto</h1>
-        <p class="page-hero-desc" data-reveal data-delay="100">
-          VeciIA es una plataforma donde los ciudadanos reportan problemas de su comunidad en tiempo real.
-          La inteligencia artificial los organiza, prioriza y conecta automáticamente con las personas
-          o entidades que pueden solucionarlos.
-        </p>
+    <section class="page-hero page-hero-split">
+      <div class="section-inner page-hero-grid">
+        <div class="page-hero-text">
+          <span class="section-tag" data-reveal>Plataforma</span>
+          <h1 data-reveal data-delay="50">Tu barrio conectado, organizado y resuelto</h1>
+          <p class="page-hero-desc" data-reveal data-delay="100">
+            VeciIA es una plataforma donde los ciudadanos reportan problemas de su comunidad en tiempo real.
+            La inteligencia artificial los organiza, prioriza y conecta automáticamente con las personas
+            o entidades que pueden solucionarlos.
+          </p>
+        </div>
+        <div class="page-hero-visual" data-reveal="right" data-delay="150">
+          <img src="assets/hero-plataforma.png" alt="Vecino reportando un problema desde el celular" loading="eager">
+        </div>
       </div>
     </section>
 
@@ -35,22 +40,34 @@
       <div class="section-inner">
         <span class="section-tag" data-reveal>¿Qué es?</span>
         <h2 data-reveal data-delay="50">Tres pasos para resolver problemas</h2>
-        <div class="feature-cards">
-          <div class="feature-card" data-reveal data-delay="0" data-tilt>
-            <div class="feature-icon">📱</div>
-            <h3>Reporta en segundos</h3>
-            <p>Describe el problema desde tu celular con ubicación y foto.</p>
-          </div>
-          <div class="feature-card" data-reveal data-delay="100" data-tilt>
-            <div class="feature-icon">🤖</div>
-            <h3>IA que organiza</h3>
-            <p>Agrupa reportes similares y detecta los más urgentes.</p>
-          </div>
-          <div class="feature-card" data-reveal data-delay="200" data-tilt>
-            <div class="feature-icon">🔗</div>
-            <h3>Conexión directa</h3>
-            <p>Alerta a quienes pueden ayudar: vecinos, entidades o servicios.</p>
-          </div>
+        <div class="page-cards">
+          <article class="page-card" data-reveal data-delay="0" data-tilt>
+            <div class="page-card-media">
+              <img src="assets/feature-reporta.png" alt="Reporta en segundos desde el celular" loading="lazy">
+            </div>
+            <div class="page-card-body">
+              <h3>Reporta en segundos</h3>
+              <p>Describe el problema desde tu celular con ubicación y foto.</p>
+            </div>
+          </article>
+          <article class="page-card" data-reveal data-delay="100" data-tilt>
+            <div class="page-card-media">
+              <img src="assets/feature-ia.png" alt="IA que organiza y prioriza reportes" loading="lazy">
+            </div>
+            <div class="page-card-body">
+              <h3>IA que organiza</h3>
+              <p>Agrupa reportes similares y detecta los más urgentes.</p>
+            </div>
+          </article>
+          <article class="page-card" data-reveal data-delay="200" data-tilt>
+            <div class="page-card-media">
+              <img src="assets/feature-conecta.png" alt="Conexión directa con la comunidad" loading="lazy">
+            </div>
+            <div class="page-card-body">
+              <h3>Conexión directa</h3>
+              <p>Alerta a quienes pueden ayudar: vecinos, entidades o servicios.</p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -89,27 +106,32 @@
       </div>
     </section>
 
-    <section class="section">
-      <div class="section-inner two-col">
-        <div class="col-text">
-          <span class="section-tag" data-reveal>¿Qué la hace diferente?</span>
-          <h2 data-reveal data-delay="50">Centraliza lo que hoy se pierde en WhatsApp</h2>
-          <p data-reveal data-delay="100">
-            Actualmente las personas publican estos problemas en grupos de Facebook o WhatsApp
-            y la información se pierde. VeciIA centralizaría todo en un solo lugar.
-          </p>
-          <div class="compare-bar" data-reveal data-delay="150">
-            <div class="compare-item bad">
-              <span>WhatsApp / Facebook</span>
-              <div class="bar-track"><div class="bar-fill"></div></div>
-            </div>
-            <div class="compare-item good">
-              <span>VeciIA</span>
-              <div class="bar-track"><div class="bar-fill"></div></div>
+    <section class="section section-platform-diff">
+      <div class="section-inner">
+        <div class="platform-diff-top two-col">
+          <div class="col-text">
+            <span class="section-tag" data-reveal>¿Qué la hace diferente?</span>
+            <h2 data-reveal data-delay="50">Centraliza lo que hoy se pierde en WhatsApp</h2>
+            <p data-reveal data-delay="100">
+              Actualmente las personas publican estos problemas en grupos de Facebook o WhatsApp
+              y la información se pierde. VeciIA centralizaría todo en un solo lugar.
+            </p>
+            <div class="compare-bar" data-reveal data-delay="150">
+              <div class="compare-item bad">
+                <span>WhatsApp / Facebook</span>
+                <div class="bar-track"><div class="bar-fill"></div></div>
+              </div>
+              <div class="compare-item good">
+                <span>VeciIA</span>
+                <div class="bar-track"><div class="bar-fill"></div></div>
+              </div>
             </div>
           </div>
+          <div class="platform-diff-visual" data-reveal="right" data-delay="100">
+            <img src="assets/platform-compare.png" alt="Comparación: WhatsApp caótico vs VeciIA organizado" class="platform-compare-img" width="1536" height="1024" loading="lazy" decoding="async">
+          </div>
         </div>
-        <div class="col-cards">
+        <div class="col-cards platform-diff-cards">
           <div class="diff-card" data-reveal data-delay="0" data-tilt>
             <span class="diff-number">01</span>
             <h3>Problemas más urgentes</h3>
