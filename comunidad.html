@@ -61,22 +61,44 @@
       </div>
     </section>
 
-    <!-- Casos resueltos -->
-    <section class="section section-stories">
+    <!-- Reportes y soluciones -->
+    <section class="section section-community-board">
+      <div class="section-inner">
+        <div class="community-board-header" data-reveal>
+          <div>
+            <span class="section-tag">Soluciones en comunidad</span>
+            <h2>Reportes y problemas resueltos</h2>
+            <p class="section-lead">
+              Contacta por WhatsApp a quien publicó el problema o a quien lo resolvió.
+              Si tú publicaste el reporte, puedes marcarlo como resuelto e indicar quién ayudó — se genera una constancia de validación.
+            </p>
+          </div>
+          <div class="community-board-tabs" id="community-board-tabs">
+            <button type="button" class="filter-chip active" data-board-tab="open">📍 Abiertos</button>
+            <button type="button" class="filter-chip" data-board-tab="resolved">✅ Resueltos</button>
+          </div>
+        </div>
+        <div id="community-board-grid" class="community-board-grid" data-reveal data-delay="100"></div>
+        <p class="community-board-hint guest-only" data-reveal data-delay="150">
+          <a href="mapa.html#reportar">Publica un reporte en el mapa</a> (con tu WhatsApp) para que otros vecinos puedan contactarte.
+        </p>
+        <p class="community-board-hint logged-in-only" data-reveal data-delay="150">
+          Publica reportes en el <a href="mapa.html#reportar">mapa</a> con tu número de WhatsApp. Solo tú puedes confirmar quién resolvió tu problema.
+        </p>
+      </div>
+    </section>
+
+    <!-- Casos resueltos (destacados) -->
+    <section class="section section-stories section-alt">
       <div class="section-inner">
         <div class="stories-header" data-reveal>
           <div>
             <span class="section-tag">Casos resueltos</span>
             <h2>Problemas que la comunidad ya solucionó</h2>
+            <p class="section-lead">Contacta a quien reportó o a quien ayudó a resolverlo. Cada caso incluye constancia de validación.</p>
           </div>
         </div>
-        <div class="stories-gallery" data-reveal data-delay="100">
-          <button type="button" class="gallery-edge-btn gallery-edge-prev" id="stories-prev" aria-label="Anterior">‹</button>
-          <button type="button" class="gallery-edge-btn gallery-edge-next" id="stories-next" aria-label="Siguiente">›</button>
-          <div class="stories-carousel-wrap">
-            <div class="stories-carousel" id="stories-grid"></div>
-          </div>
-        </div>
+        <div id="community-resolved-grid" class="community-board-grid community-board-grid--resolved" data-reveal data-delay="100"></div>
       </div>
     </section>
 
@@ -205,6 +227,33 @@
 
   <div id="site-footer"></div>
   <div id="site-auth"></div>
+
+  <div id="resolve-modal" class="resolve-modal" aria-hidden="true">
+    <div class="resolve-modal-content">
+      <button type="button" class="modal-close resolve-modal-close" aria-label="Cerrar">&times;</button>
+      <h3>Marcar problema como resuelto</h3>
+      <p class="resolve-modal-lead">Solo tú, como autor del reporte, puedes confirmar quién lo solucionó. Se generará una constancia de validación.</p>
+      <form id="resolve-form">
+        <input type="hidden" id="resolve-report-id">
+        <label for="resolve-solver-name">¿Quién solucionó el problema?</label>
+        <input type="text" id="resolve-solver-name" placeholder="Nombre de la persona o entidad" required maxlength="80">
+        <label for="resolve-solver-phone">WhatsApp del solucionador (opcional)</label>
+        <input type="tel" id="resolve-solver-phone" placeholder="Ej: 3107051660" maxlength="15">
+        <button type="submit" class="btn-primary btn-block">Confirmar y generar constancia</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="certificate-modal" class="cert-modal" aria-hidden="true">
+    <div class="cert-modal-content">
+      <button type="button" class="modal-close cert-modal-close" aria-label="Cerrar">&times;</button>
+      <div id="certificate-body"></div>
+      <div class="cert-modal-actions">
+        <button type="button" id="btn-share-cert-wa" class="btn-primary">Compartir constancia por WhatsApp</button>
+        <button type="button" class="btn-secondary cert-modal-close-btn">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
   <script src="layout.js"></script>
   <script src="app.js"></script>

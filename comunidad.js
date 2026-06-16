@@ -14,13 +14,16 @@
 
   let allActivities = [];
   let activeFilter = 'all';
+  let activeBoardTab = 'open';
   let activityMarquee = null;
-  let storiesMarquee = null;
 
   function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
+    return VeciIA.escapeHtml(str);
+  }
+
+  function showToast(msg) {
+    if (window.VeciIAUI?.showToast) VeciIAUI.showToast(msg);
+    else alert(msg);
   }
 
   function scheduleRemeasure(marquee) {
@@ -137,10 +140,71 @@
     return { remeasure, nudge, pauseBriefly };
   }
 
+  function buildCommunityCard(report) {
+    const cat = VeciIA.CATEGORIES[report.category] || VeciIA.CATEGORIES.otro;
+    const isResolved = report.status === 'resolved';
+    const statusBadge = isResolved
+      ? '<span class="community-card-badge community-card-badge--resolved">✅ Resuelto</span>'
+      : `<span class="community-card-badge community-card-badge--open">${cat.icon} Abierto</span>`;
+
+    const solverLine = isResolved && report.solverName
+      ? `<p class="community-card-solver">Resuelto por <strong>${escapeHtml(report.solverName)}</strong></p>`
+      : '';
+
+    return `
+      <article class="community-report-card" data-id="${report.id}">
+        <div class="community-card-top">
+          <span class="community-card-icon">${cat.icon}</span>
+          ${statusBadge}
+        </div>
+        <h3 class="community-card-title">${escapeHtml(report.description)}</h3>
+        <p class="community-card-meta">
+          Publicado por <strong>${escapeHtml(report.userName)}</strong> · ${escapeHtml(report.barrio)}
+        </p>
+        ${solverLine}
+        ${VeciIA.buildReportActionsHtml(report)}
+      </article>
+    `;
+  }
+
+  function renderCommunityBoard() {
+    const grid = document.getElementById('community-board-grid');
+    if (!grid) return;
+
+    const reports = activeBoardTab === 'open'
+      ? VeciIA.getReports({ status: 'open' }).filter((r) => r.type !== 'informativo').slice(0, 12)
+      : VeciIA.getReports({ status: 'resolved' }).slice(0, 12);
+
+    if (!reports.length) {
+      grid.innerHTML = `<p class="empty-list">No hay reportes ${activeBoardTab === 'open' ? 'abiertos' : 'resueltos'} por ahora.</p>`;
+      return;
+    }
+
+    grid.innerHTML = reports.map(buildCommunityCard).join('');
+  }
+
+  function renderResolvedGrid() {
+    const grid = document.getElementById('community-resolved-grid');
+    if (!grid) return;
+
+    const resolved = VeciIA.getResolvedStories();
+    if (!resolved.length) {
+      grid.innerHTML = '<p class="empty-list">Aún no hay casos resueltos en la comunidad.</p>';
+      return;
+    }
+
+    grid.innerHTML = resolved.map((story) => {
+      const report = VeciIA.getReportById(story.id) || story;
+      return buildCommunityCard(report);
+    }).join('');
+  }
+
   function buildActivityCard(a) {
     const badge = TYPE_LABELS[a.type] || TYPE_LABELS.report;
+    const actionsHtml = a.report ? VeciIA.buildReportActionsHtml(a.report) : '';
+
     return `
-      <article class="gallery-card activity-${a.type}" data-type="${a.type}">
+      <article class="gallery-card activity-${a.type}" data-type="${a.type}" data-report-id="${a.reportId || ''}">
         <div class="gallery-card-top">
           <span class="gallery-card-icon">${a.icon}</span>
           <span class="gallery-badge ${badge.class}">${badge.label}</span>
@@ -150,6 +214,7 @@
           <span>${escapeHtml(a.meta)}</span>
           <time>${escapeHtml(a.time)}</time>
         </div>
+        ${actionsHtml ? `<div class="gallery-card-actions">${actionsHtml}</div>` : ''}
       </article>`;
   }
 
@@ -190,61 +255,120 @@
     document.getElementById('activity-filters')?.addEventListener('click', (e) => {
       const chip = e.target.closest('.filter-chip');
       if (!chip) return;
-      document.querySelectorAll('.filter-chip').forEach((c) => c.classList.remove('active'));
+      document.querySelectorAll('#activity-filters .filter-chip').forEach((c) => c.classList.remove('active'));
       chip.classList.add('active');
       activeFilter = chip.dataset.filter;
       renderActivityGallery();
     });
   }
 
-  function renderStories() {
-    const carousel = document.getElementById('stories-grid');
-    if (!carousel) return;
-
-    const stories = VeciIA.getResolvedStories();
-    const cards = stories.map((s, i) => `
-      <div class="story-card" data-index="${i}">
-        <div class="story-card-inner">
-          <span class="story-icon">${s.icon}</span>
-          <span class="story-badge">✅ Resuelto</span>
-          <h3>${escapeHtml(s.description)}</h3>
-          <p class="story-author">${escapeHtml(s.userName)} · ${escapeHtml(s.barrio)}</p>
-          <span class="story-hover-cta">Ver en el mapa →</span>
-        </div>
-      </div>
-    `).join('');
-
-    carousel.innerHTML = stories.length > 1 ? cards + cards : cards;
-    scheduleRemeasure(storiesMarquee);
-
-    carousel.querySelectorAll('.story-card').forEach((card) => {
-      card.addEventListener('click', () => {
-        card.classList.add('story-tapped');
-        setTimeout(() => card.classList.remove('story-tapped'), 300);
-      });
-    });
+  function openResolveModal(reportId) {
+    const modal = document.getElementById('resolve-modal');
+    document.getElementById('resolve-report-id').value = reportId;
+    document.getElementById('resolve-solver-name').value = '';
+    document.getElementById('resolve-solver-phone').value = '';
+    modal?.classList.add('open');
+    modal?.setAttribute('aria-hidden', 'false');
   }
 
-  function initStoriesCarousel() {
-    const carousel = document.getElementById('stories-grid');
-    if (!carousel) return;
+  function closeResolveModal() {
+    const modal = document.getElementById('resolve-modal');
+    modal?.classList.remove('open');
+    modal?.setAttribute('aria-hidden', 'true');
+  }
 
-    const wrap = carousel.closest('.stories-carousel-wrap');
+  function openCertificateModal(certId) {
+    const cert = VeciIA.getCertificate(certId);
+    if (!cert) return;
+    const modal = document.getElementById('certificate-modal');
+    const body = document.getElementById('certificate-body');
+    if (!modal || !body) return;
 
-    renderStories();
+    body.innerHTML = `
+      <div class="cert-document">
+        <div class="cert-doc-header"><span class="cert-doc-logo">VeciIA</span><span class="cert-doc-badge">Constancia</span></div>
+        <h3>Problema resuelto – validación</h3>
+        <p class="cert-doc-id">ID: <strong>${escapeHtml(cert.id)}</strong></p>
+        <p><strong>Reporte:</strong> ${escapeHtml(cert.description)}</p>
+        <p><strong>Publicado por:</strong> ${escapeHtml(cert.authorName)}</p>
+        <p><strong>Solucionado por:</strong> ${escapeHtml(cert.solverName)}</p>
+        <p><strong>Fecha:</strong> ${new Date(cert.createdAt).toLocaleDateString('es-CO', { dateStyle: 'long' })}</p>
+        <p class="cert-doc-valid">Este documento valida que el problema fue confirmado como resuelto en VeciIA.</p>
+      </div>`;
 
-    storiesMarquee = createMarquee(carousel, {
-      speed: BASE_SPEED * 0.9,
-      cardSelector: '.story-card',
-      gap: 20,
-      wrap,
-      prevBtn: document.getElementById('stories-prev'),
-      nextBtn: document.getElementById('stories-next'),
+    modal.dataset.certId = certId;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeCertificateModal() {
+    const modal = document.getElementById('certificate-modal');
+    modal?.classList.remove('open');
+    modal?.setAttribute('aria-hidden', 'true');
+  }
+
+  function initReportActions() {
+    document.body.addEventListener('click', (e) => {
+      const resolveBtn = e.target.closest('.report-resolve-open');
+      if (resolveBtn) {
+        e.preventDefault();
+        openResolveModal(resolveBtn.dataset.id);
+        return;
+      }
+      const certBtn = e.target.closest('.report-cert-btn, .popup-view-cert');
+      if (certBtn) {
+        e.preventDefault();
+        openCertificateModal(certBtn.dataset.cert);
+      }
     });
 
-    scheduleRemeasure(storiesMarquee);
+    document.getElementById('resolve-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const reportId = document.getElementById('resolve-report-id').value;
+      const solverName = document.getElementById('resolve-solver-name').value;
+      const solverPhone = document.getElementById('resolve-solver-phone').value;
+      try {
+        const { certificate } = VeciIA.resolveReportAsAuthor(reportId, { solverName, solverPhone });
+        closeResolveModal();
+        refreshAll();
+        showToast('✅ Problema resuelto. Constancia generada.');
+        openCertificateModal(certificate.id);
+      } catch (err) {
+        alert(err.message);
+      }
+    });
 
-    window.addEventListener('resize', () => scheduleRemeasure(storiesMarquee));
+    document.querySelectorAll('.resolve-modal-close').forEach((btn) => {
+      btn.addEventListener('click', closeResolveModal);
+    });
+    document.getElementById('resolve-modal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'resolve-modal') closeResolveModal();
+    });
+
+    document.getElementById('btn-share-cert-wa')?.addEventListener('click', () => {
+      const modal = document.getElementById('certificate-modal');
+      const certId = modal?.dataset.certId;
+      if (!certId) return;
+      const cert = VeciIA.getCertificate(certId);
+      if (!cert) return;
+      const wa = VeciIA.whatsAppLink(cert.authorPhone || cert.solverPhone, VeciIA.getCertificateMessage(cert));
+      if (wa) window.open(wa, '_blank', 'noopener');
+    });
+    document.querySelectorAll('.cert-modal-close, .cert-modal-close-btn').forEach((btn) => {
+      btn.addEventListener('click', closeCertificateModal);
+    });
+    document.getElementById('certificate-modal')?.addEventListener('click', (e) => {
+      if (e.target.id === 'certificate-modal') closeCertificateModal();
+    });
+
+    document.getElementById('community-board-tabs')?.addEventListener('click', (e) => {
+      const tab = e.target.closest('[data-board-tab]');
+      if (!tab) return;
+      document.querySelectorAll('#community-board-tabs .filter-chip').forEach((c) => c.classList.remove('active'));
+      tab.classList.add('active');
+      activeBoardTab = tab.dataset.boardTab;
+      renderCommunityBoard();
+    });
   }
 
   function renderLeaderboard() {
@@ -337,14 +461,17 @@
 
   function refreshAll() {
     renderActivityGallery();
-    renderStories();
+    renderCommunityBoard();
+    renderResolvedGrid();
     renderLeaderboard();
     renderZoneStats();
   }
 
   initActivityGallery();
-  initStoriesCarousel();
+  initReportActions();
+  refreshAll();
 
   VeciIA.on('ready', refreshAll);
   VeciIA.on('reports', refreshAll);
+  VeciIA.on('auth', refreshAll);
 })();

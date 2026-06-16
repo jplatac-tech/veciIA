@@ -457,7 +457,25 @@
   }
 
   function getCertificate(certId) {
-    return (data.certificates || []).find((c) => c.id === certId) || null;
+    const found = (data.certificates || []).find((c) => c.id === certId);
+    if (found) return found;
+
+    const report = data.reports.find((r) => r.certificateId === certId);
+    if (!report || report.status !== 'resolved') return null;
+
+    return {
+      id: certId,
+      reportId: report.id,
+      authorId: report.userId,
+      authorName: report.userName,
+      authorPhone: getReportContactPhone(report),
+      solverName: report.solverName || 'Vecino colaborador',
+      solverPhone: getSolverContactPhone(report),
+      description: report.description,
+      barrio: report.barrio,
+      category: report.category,
+      createdAt: report.resolvedAt || report.createdAt,
+    };
   }
 
   function getUserCertificates(userId) {
@@ -563,6 +581,8 @@
       const group = getGroupCount(r);
       activities.push({
         type: 'report',
+        reportId: r.id,
+        report: r,
         icon: cat.icon,
         text: `${r.userName} reportó: "${r.description.slice(0, 55)}${r.description.length > 55 ? '…' : ''}"`,
         meta: `${r.barrio} · ${r.urgency}${group > 1 ? ` · 🤖 ${group} vecinos` : ''}`,
@@ -573,9 +593,11 @@
       const cat = CATEGORIES[r.category] || CATEGORIES.otro;
       activities.push({
         type: 'resolved',
+        reportId: r.id,
+        report: r,
         icon: '✅',
-        text: `Problema resuelto: "${r.description.slice(0, 50)}…"`,
-        meta: `${r.barrio} · +25 pts de impacto`,
+        text: `"${r.description.slice(0, 50)}${r.description.length > 50 ? '…' : ''}"`,
+        meta: `${r.userName} · resolvió ${r.solverName || 'un vecino'} · ${r.barrio}`,
         time: timeAgo(r.resolvedAt || r.createdAt),
       });
     });
@@ -597,21 +619,25 @@
   }
 
   function getResolvedStories() {
-    const fromData = data.reports
+    return data.reports
       .filter((r) => r.status === 'resolved')
       .map((r) => ({
+        id: r.id,
         userName: r.userName,
         barrio: r.barrio,
         description: r.description,
         category: r.category,
         icon: (CATEGORIES[r.category] || CATEGORIES.otro).icon,
-      }));
-    return fromData.length >= 3 ? fromData.slice(0, 6) : RESOLVED_EXAMPLES.map((e) => ({
-      userName: e.userName,
-      barrio: e.barrio,
-      description: e.action,
-      icon: e.icon,
-    }));
+        solverName: r.solverName,
+        solverPhone: getSolverContactPhone(r),
+        phone: getReportContactPhone(r),
+        certificateId: r.certificateId,
+        userId: r.userId,
+        type: r.type,
+        status: r.status,
+        resolvedAt: r.resolvedAt,
+      }))
+      .slice(0, 12);
   }
 
   function getTopNeighbors() {
@@ -637,6 +663,65 @@
     return days === 1 ? 'Ayer' : `Hace ${days} días`;
   }
 
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function getReportById(id) {
+    return data.reports.find((r) => r.id === id) || null;
+  }
+
+  function buildReportContactsHtml(report, variant) {
+    const btnClass = variant === 'popup' ? 'popup-wa-btn' : 'report-wa-btn';
+    let html = '';
+
+    const authorPhone = getReportContactPhone(report);
+    if (authorPhone) {
+      const msg = `Hola ${report.userName}, vi tu reporte en VeciIA: "${report.description.slice(0, 100)}" y quiero ayudar.`;
+      const wa = whatsAppLink(authorPhone, msg);
+      html += `<a href="${wa}" target="_blank" rel="noopener" class="${btnClass}">💬 Contactar a ${escapeHtml(report.userName)} (reportó)</a>`;
+    }
+
+    if (report.status === 'resolved' && report.solverName) {
+      const solverPhone = getSolverContactPhone(report);
+      if (solverPhone) {
+        const msg = `Hola ${report.solverName}, vi que ayudaste a resolver un reporte en VeciIA: "${report.description.slice(0, 80)}". ¡Gracias!`;
+        const wa = whatsAppLink(solverPhone, msg);
+        const solverClass = variant === 'list' ? `${btnClass} report-wa-btn--solver` : btnClass;
+        html += `<a href="${wa}" target="_blank" rel="noopener" class="${solverClass}">💬 Contactar a ${escapeHtml(report.solverName)} (resolvió)</a>`;
+      }
+    }
+
+    if (!html) {
+      html = '<p class="report-no-contact">Sin WhatsApp registrado para este reporte.</p>';
+    }
+    return html;
+  }
+
+  function buildReportActionsHtml(report) {
+    const user = getSessionUser();
+    const isAuthor = user && report.userId === user.id;
+    const isInformativo = report.type === 'informativo';
+
+    let html = '<div class="report-item-actions">';
+    html += buildReportContactsHtml(report, 'list');
+
+    if (report.status === 'resolved') {
+      if (report.certificateId) {
+        html += `<button type="button" class="report-cert-btn btn-secondary btn-sm" data-cert="${report.certificateId}">Ver constancia</button>`;
+      }
+    } else if (!isInformativo && isAuthor) {
+      html += `<button type="button" class="report-resolve-open btn-primary btn-sm" data-id="${report.id}">Marcar resuelto</button>`;
+    } else if (isInformativo) {
+      html += '<span class="report-info-badge">ℹ️ Aviso informativo</span>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
   window.VeciIA = {
     CATEGORIES,
     REPORT_TYPES,
@@ -650,6 +735,7 @@
     createReport,
     resolveReportAsAuthor,
     getReports,
+    getReportById,
     getGroupCount,
     getStats,
     getHeatPoints,
@@ -669,6 +755,9 @@
     whatsAppLink,
     getReportContactPhone,
     getSolverContactPhone,
+    buildReportContactsHtml,
+    buildReportActionsHtml,
+    escapeHtml,
     normalizePhone,
     detectCategory,
     CARTAGENA_CENTER: [10.391, -75.512],

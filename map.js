@@ -129,33 +129,6 @@
     document.getElementById('map-click-hint')?.classList.remove('placed');
   }
 
-  function buildReportContactsHtml(report, variant) {
-    const btnClass = variant === 'list' ? 'report-wa-btn' : 'popup-wa-btn';
-    let html = '';
-
-    const authorPhone = VeciIA.getReportContactPhone(report);
-    if (authorPhone) {
-      const msg = `Hola ${report.userName}, vi tu reporte en VeciIA: "${report.description.slice(0, 100)}" y quiero ayudar.`;
-      const wa = VeciIA.whatsAppLink(authorPhone, msg);
-      html += `<a href="${wa}" target="_blank" rel="noopener" class="${btnClass}">💬 Contactar a ${escapeHtml(report.userName)} (reportó)</a>`;
-    }
-
-    if (report.status === 'resolved' && report.solverName) {
-      const solverPhone = VeciIA.getSolverContactPhone(report);
-      if (solverPhone) {
-        const msg = `Hola ${report.solverName}, vi que ayudaste a resolver un reporte en VeciIA: "${report.description.slice(0, 80)}". ¡Gracias!`;
-        const wa = VeciIA.whatsAppLink(solverPhone, msg);
-        const solverClass = variant === 'list' ? `${btnClass} report-wa-btn--solver` : btnClass;
-        html += `<a href="${wa}" target="_blank" rel="noopener" class="${solverClass}">💬 Contactar a ${escapeHtml(report.solverName)} (resolvió)</a>`;
-      }
-    }
-
-    if (!html) {
-      html = '<p class="report-no-contact">Sin WhatsApp registrado para este reporte.</p>';
-    }
-    return html;
-  }
-
   function buildPopup(report) {
     const cat = VeciIA.CATEGORIES[report.category] || VeciIA.CATEGORIES.otro;
     const typeInfo = VeciIA.REPORT_TYPES[report.type] || VeciIA.REPORT_TYPES.problema;
@@ -167,7 +140,7 @@
     const isAuthor = user && report.userId === user.id;
     const isInformativo = report.type === 'informativo';
 
-    const contactHtml = buildReportContactsHtml(report, 'popup');
+    const contactHtml = VeciIA.buildReportContactsHtml(report, 'popup');
 
     let actionHtml = '';
     if (report.status === 'resolved') {
@@ -323,25 +296,7 @@
   }
 
   function buildListActions(report) {
-    const user = VeciIA.getSessionUser();
-    const isAuthor = user && report.userId === user.id;
-    const isInformativo = report.type === 'informativo';
-
-    let html = '<div class="report-item-actions">';
-    html += buildReportContactsHtml(report, 'list');
-
-    if (report.status === 'resolved') {
-      if (report.certificateId) {
-        html += `<button type="button" class="report-cert-btn btn-secondary btn-sm" data-cert="${report.certificateId}">Ver constancia</button>`;
-      }
-    } else if (!isInformativo && isAuthor) {
-      html += `<button type="button" class="report-resolve-open btn-primary btn-sm" data-id="${report.id}">Marcar resuelto</button>`;
-    } else if (isInformativo) {
-      html += '<span class="report-info-badge">ℹ️ Aviso informativo</span>';
-    }
-
-    html += '</div>';
-    return html;
+    return VeciIA.buildReportActionsHtml(report);
   }
 
   function renderReportItem(r) {
