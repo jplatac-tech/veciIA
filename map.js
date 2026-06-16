@@ -129,6 +129,33 @@
     document.getElementById('map-click-hint')?.classList.remove('placed');
   }
 
+  function buildReportContactsHtml(report, variant) {
+    const btnClass = variant === 'list' ? 'report-wa-btn' : 'popup-wa-btn';
+    let html = '';
+
+    const authorPhone = VeciIA.getReportContactPhone(report);
+    if (authorPhone) {
+      const msg = `Hola ${report.userName}, vi tu reporte en VeciIA: "${report.description.slice(0, 100)}" y quiero ayudar.`;
+      const wa = VeciIA.whatsAppLink(authorPhone, msg);
+      html += `<a href="${wa}" target="_blank" rel="noopener" class="${btnClass}">💬 Contactar a ${escapeHtml(report.userName)} (reportó)</a>`;
+    }
+
+    if (report.status === 'resolved' && report.solverName) {
+      const solverPhone = VeciIA.getSolverContactPhone(report);
+      if (solverPhone) {
+        const msg = `Hola ${report.solverName}, vi que ayudaste a resolver un reporte en VeciIA: "${report.description.slice(0, 80)}". ¡Gracias!`;
+        const wa = VeciIA.whatsAppLink(solverPhone, msg);
+        const solverClass = variant === 'list' ? `${btnClass} report-wa-btn--solver` : btnClass;
+        html += `<a href="${wa}" target="_blank" rel="noopener" class="${solverClass}">💬 Contactar a ${escapeHtml(report.solverName)} (resolvió)</a>`;
+      }
+    }
+
+    if (!html) {
+      html = '<p class="report-no-contact">Sin WhatsApp registrado para este reporte.</p>';
+    }
+    return html;
+  }
+
   function buildPopup(report) {
     const cat = VeciIA.CATEGORIES[report.category] || VeciIA.CATEGORIES.otro;
     const typeInfo = VeciIA.REPORT_TYPES[report.type] || VeciIA.REPORT_TYPES.problema;
@@ -140,19 +167,7 @@
     const isAuthor = user && report.userId === user.id;
     const isInformativo = report.type === 'informativo';
 
-    const contactMsg = `Hola ${report.userName}, vi tu reporte en VeciIA: "${report.description.slice(0, 100)}" y quiero ayudar.`;
-    const waAuthor = report.phone ? VeciIA.whatsAppLink(report.phone, contactMsg) : null;
-
-    let contactHtml = '';
-    if (waAuthor) {
-      contactHtml += `<a href="${waAuthor}" target="_blank" rel="noopener" class="popup-wa-btn">💬 Contactar a ${escapeHtml(report.userName)}</a>`;
-    }
-    contactHtml += '<div class="popup-mediators"><small>Mediadores VeciIA:</small>';
-    VeciIA.PLATFORM_CONTACTS.forEach((c) => {
-      const wa = VeciIA.whatsAppLink(c.phone, `Hola, apoyo con reporte de ${report.userName}: ${report.description.slice(0, 80)}`);
-      contactHtml += `<a href="${wa}" target="_blank" rel="noopener" class="popup-wa-link">${escapeHtml(c.name)}</a>`;
-    });
-    contactHtml += '</div>';
+    const contactHtml = buildReportContactsHtml(report, 'popup');
 
     let actionHtml = '';
     if (report.status === 'resolved') {
@@ -301,45 +316,87 @@
       });
     }
 
-    renderReportsList(reports);
+    renderReportsList(
+      VeciIA.getReports(activeFilter === 'all' ? {} : { category: activeFilter })
+    );
     updateStats();
   }
 
-  function renderReportsList(reports) {
+  function buildListActions(report) {
+    const user = VeciIA.getSessionUser();
+    const isAuthor = user && report.userId === user.id;
+    const isInformativo = report.type === 'informativo';
+
+    let html = '<div class="report-item-actions">';
+    html += buildReportContactsHtml(report, 'list');
+
+    if (report.status === 'resolved') {
+      if (report.certificateId) {
+        html += `<button type="button" class="report-cert-btn btn-secondary btn-sm" data-cert="${report.certificateId}">Ver constancia</button>`;
+      }
+    } else if (!isInformativo && isAuthor) {
+      html += `<button type="button" class="report-resolve-open btn-primary btn-sm" data-id="${report.id}">Marcar resuelto</button>`;
+    } else if (isInformativo) {
+      html += '<span class="report-info-badge">ℹ️ Aviso informativo</span>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderReportItem(r) {
+    const cat = VeciIA.CATEGORIES[r.category] || VeciIA.CATEGORIES.otro;
+    const group = VeciIA.getGroupCount(r);
+    const typeTag = r.type === 'informativo' ? 'ℹ️ ' : '';
+    const resolvedTag = r.status === 'resolved' ? '✅ ' : '';
+    return `
+      <article class="report-item${r.status === 'resolved' ? ' report-item--resolved' : ''}" data-lat="${r.lat}" data-lng="${r.lng}" data-id="${r.id}">
+        <button type="button" class="report-item-main">
+          <span class="report-item-icon">${cat.icon}</span>
+          <div class="report-item-body">
+            <strong>${resolvedTag}${typeTag}${escapeHtml(r.description.slice(0, 60))}${r.description.length > 60 ? '…' : ''}</strong>
+            <span>${escapeHtml(r.userName)} · ${escapeHtml(r.barrio)}${group > 1 ? ` · 🤖 ×${group}` : ''}${r.status === 'resolved' && r.solverName ? ` · resolvió ${escapeHtml(r.solverName)}` : ''}</span>
+          </div>
+        </button>
+        ${buildListActions(r)}
+      </article>
+    `;
+  }
+
+  function renderReportsList(allReports) {
     const list = document.getElementById('reports-list');
     if (!list) return;
 
-    const open = reports.filter((r) => r.status === 'open').slice(0, 20);
-    if (!open.length) {
-      list.innerHTML = '<p class="empty-list">No hay reportes abiertos con este filtro.</p>';
+    const open = allReports.filter((r) => r.status === 'open').slice(0, 20);
+    const resolved = allReports.filter((r) => r.status === 'resolved').slice(0, 5);
+
+    if (!open.length && !resolved.length) {
+      list.innerHTML = '<p class="empty-list">No hay reportes con este filtro.</p>';
       return;
     }
 
-    list.innerHTML = open.map((r) => {
-      const cat = VeciIA.CATEGORIES[r.category] || VeciIA.CATEGORIES.otro;
-      const group = VeciIA.getGroupCount(r);
-      const typeTag = r.type === 'informativo' ? 'ℹ️ ' : '';
-      return `
-        <button class="report-item" data-lat="${r.lat}" data-lng="${r.lng}" data-id="${r.id}">
-          <span class="report-item-icon">${cat.icon}</span>
-          <div class="report-item-body">
-            <strong>${typeTag}${escapeHtml(r.description.slice(0, 60))}${r.description.length > 60 ? '…' : ''}</strong>
-            <span>${escapeHtml(r.userName)} · ${escapeHtml(r.barrio)}${group > 1 ? ` · 🤖 ×${group}` : ''}</span>
-          </div>
-        </button>
-      `;
-    }).join('');
+    let html = '';
+    if (open.length) {
+      html += open.map(renderReportItem).join('');
+    } else {
+      html += '<p class="empty-list">No hay reportes abiertos con este filtro.</p>';
+    }
+    if (resolved.length) {
+      html += '<h3 class="reports-list-subtitle">✅ Resueltos recientes</h3>';
+      html += resolved.map(renderReportItem).join('');
+    }
+    list.innerHTML = html;
+  }
 
-    list.querySelectorAll('.report-item').forEach((item) => {
-      item.addEventListener('click', () => {
-        map.setView([+item.dataset.lat, +item.dataset.lng], 15, { animate: true });
-        markersLayer.eachLayer((layer) => {
-          const ll = layer.getLatLng();
-          if (Math.abs(ll.lat - +item.dataset.lat) < 0.0001) {
-            layer.openPopup();
-          }
-        });
-      });
+  function focusReportOnMap(item) {
+    const lat = +item.dataset.lat;
+    const lng = +item.dataset.lng;
+    map.setView([lat, lng], 15, { animate: true });
+    markersLayer.eachLayer((layer) => {
+      const ll = layer.getLatLng();
+      if (Math.abs(ll.lat - lat) < 0.0001 && Math.abs(ll.lng - lng) < 0.0001) {
+        layer.openPopup();
+      }
     });
   }
 
@@ -380,6 +437,24 @@
   }
 
   /* Controls & popups */
+  document.getElementById('reports-list')?.addEventListener('click', (e) => {
+    const resolveBtn = e.target.closest('.report-resolve-open');
+    if (resolveBtn) {
+      e.preventDefault();
+      openResolveModal(resolveBtn.dataset.id);
+      return;
+    }
+    const certBtn = e.target.closest('.report-cert-btn');
+    if (certBtn) {
+      e.preventDefault();
+      openCertificateModal(certBtn.dataset.cert);
+      return;
+    }
+    if (e.target.closest('.report-wa-btn')) return;
+    const main = e.target.closest('.report-item-main');
+    if (main) focusReportOnMap(main.closest('.report-item'));
+  });
+
   document.getElementById('cartagena-map')?.addEventListener('click', (e) => {
     const resolveBtn = e.target.closest('.popup-resolve-open');
     if (resolveBtn) {
@@ -421,7 +496,7 @@
     if (!certId) return;
     const cert = VeciIA.getCertificate(certId);
     if (!cert) return;
-    const wa = VeciIA.whatsAppLink(cert.authorPhone || VeciIA.PLATFORM_CONTACTS[0].phone, VeciIA.getCertificateMessage(cert));
+    const wa = VeciIA.whatsAppLink(cert.authorPhone || cert.solverPhone, VeciIA.getCertificateMessage(cert));
     if (wa) window.open(wa, '_blank', 'noopener');
   });
   document.querySelectorAll('.cert-modal-close, .cert-modal-close-btn').forEach((btn) => {

@@ -2781,13 +2781,13 @@ body.logged-in .btn-submit-report {
 
 .report-item {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 0;
   width: 100%;
-  padding: 12px;
+  padding: 0;
   border: none;
   background: none;
   border-radius: 12px;
-  cursor: pointer;
   text-align: left;
   font-family: var(--font);
   transition: background 0.2s;
@@ -2796,6 +2796,76 @@ body.logged-in .btn-submit-report {
 
 .report-item:hover {
   background: var(--bg-alt);
+}
+
+.report-item-main {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: none;
+  border-radius: 12px 12px 0 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.report-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 12px;
+  align-items: center;
+}
+
+.report-wa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  background: #25d366;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.report-wa-btn--solver {
+  background: var(--green-dark);
+}
+
+.report-no-contact,
+.popup-contacts .report-no-contact {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.reports-list-subtitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 12px 12px 4px;
+  margin: 8px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.report-item--resolved {
+  opacity: 0.95;
+}
+
+.report-info-badge {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.report-item-main:hover {
+  background: transparent;
 }
 
 .report-item-icon {
@@ -3731,8 +3801,12 @@ body.logged-in #cuenta-guest {
     font-size: 0.82rem;
   }
 
-  body[data-page="mapa"] .report-item {
+  body[data-page="mapa"] .report-item-main {
     padding: 10px;
+  }
+
+  body[data-page="mapa"] .report-item-actions {
+    padding: 0 10px 10px;
   }
 
   body[data-page="mapa"] .footer {

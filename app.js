@@ -19,10 +19,15 @@
     informativo: { label: 'Aviso informativo', icon: 'ℹ️', points: 5 },
   };
 
-  const PLATFORM_CONTACTS = [
-    { name: 'Mediador VeciIA 1', phone: '573207149637' },
-    { name: 'Mediador VeciIA 2', phone: '573107051660' },
-    { name: 'Mediador VeciIA 3', phone: '573244144382' },
+  /* Números de ejemplo para vecinos en reportes demo (no son mediadores de plataforma) */
+  const DEMO_VECINO_PHONES = ['573207149637', '573107051660', '573244144382'];
+
+  const SEED_SOLVERS = [
+    { name: 'Diego M.', phone: '573207149637' },
+    { name: 'Laura V.', phone: '573107051660' },
+    { name: 'Ricardo T.', phone: '573244144382' },
+    { name: 'Sofía N.', phone: '573201234504' },
+    { name: 'Miguel A.', phone: '573201234505' },
   ];
 
   const SPONSOR_OFFERS = [
@@ -102,12 +107,60 @@
     return data;
   }
 
+  function seedDemoPhone(index) {
+    if (index < DEMO_VECINO_PHONES.length) return DEMO_VECINO_PHONES[index];
+    return '57310' + String(7050000 + index).slice(-7);
+  }
+
+  function seedSolverForReport(index) {
+    const solverIdx = Math.floor(index / 5) % SEED_SOLVERS.length;
+    return SEED_SOLVERS[solverIdx];
+  }
+
+  function getReportContactPhone(report) {
+    if (report.phone) return report.phone;
+    if (report.userId && report.userId !== 'demo') {
+      const user = data.users.find((u) => u.id === report.userId);
+      if (user?.phone) return user.phone;
+    }
+    if (report.id && String(report.id).startsWith('seed-')) {
+      const i = parseInt(String(report.id).replace('seed-', ''), 10);
+      if (!Number.isNaN(i)) return seedDemoPhone(i);
+    }
+    return '';
+  }
+
+  function getSolverContactPhone(report) {
+    if (report.solverPhone) return report.solverPhone;
+    if (report.solverUserId) {
+      const user = data.users.find((u) => u.id === report.solverUserId);
+      if (user?.phone) return user.phone;
+    }
+    if (report.status === 'resolved' && report.id && String(report.id).startsWith('seed-')) {
+      const i = parseInt(String(report.id).replace('seed-', ''), 10);
+      if (!Number.isNaN(i)) return seedSolverForReport(i).phone;
+    }
+    return '';
+  }
+
   function migrateData(data) {
     if (!data.certificates) data.certificates = [];
     if (!data.redemptions) data.redemptions = [];
     data.reports.forEach((r) => {
       if (!r.type) r.type = r.category === 'informativo' ? 'informativo' : 'problema';
+      if (!r.phone && r.id && String(r.id).startsWith('seed-')) {
+        const i = parseInt(String(r.id).replace('seed-', ''), 10);
+        if (!Number.isNaN(i)) r.phone = seedDemoPhone(i);
+      }
       if (!r.phone) r.phone = '';
+      if (r.status === 'resolved' && r.id && String(r.id).startsWith('seed-')) {
+        const i = parseInt(String(r.id).replace('seed-', ''), 10);
+        if (!Number.isNaN(i)) {
+          const solver = seedSolverForReport(i);
+          if (!r.solverName) r.solverName = solver.name;
+          if (!r.solverPhone) r.solverPhone = solver.phone;
+        }
+      }
     });
     data.users.forEach((u) => {
       if (!u.phone) u.phone = '';
@@ -116,24 +169,29 @@
   }
 
   function buildSeedReports() {
-    return SEED_REPORTS.map((r, i) => ({
-      id: 'seed-' + i,
-      userId: 'demo',
-      userName: r.userName,
-      barrio: r.barrio,
-      category: r.category,
-      type: r.type || 'problema',
-      description: r.description,
-      lat: r.lat,
-      lng: r.lng,
-      urgency: r.urgency,
-      phone: r.phone || '',
-      status: i % 5 === 0 ? 'resolved' : 'open',
-      createdAt: Date.now() - (i + 1) * 3600000 * 4,
-      groupId: null,
-      solverName: i % 5 === 0 ? 'Vecino colaborador' : null,
-      certificateId: i % 5 === 0 ? 'VEC-SEED-' + i : null,
-    }));
+    return SEED_REPORTS.map((r, i) => {
+      const isResolved = i % 5 === 0;
+      const solver = isResolved ? seedSolverForReport(i) : null;
+      return {
+        id: 'seed-' + i,
+        userId: 'demo',
+        userName: r.userName,
+        barrio: r.barrio,
+        category: r.category,
+        type: r.type || 'problema',
+        description: r.description,
+        lat: r.lat,
+        lng: r.lng,
+        urgency: r.urgency,
+        phone: r.phone || seedDemoPhone(i),
+        status: isResolved ? 'resolved' : 'open',
+        createdAt: Date.now() - (i + 1) * 3600000 * 4,
+        groupId: null,
+        solverName: solver ? solver.name : null,
+        solverPhone: solver ? solver.phone : null,
+        certificateId: isResolved ? 'VEC-SEED-' + i : null,
+      };
+    });
   }
 
   function ensureRichSeedData(data) {
@@ -143,6 +201,8 @@
     SEED_REPORTS.forEach((r, i) => {
       const id = 'seed-' + i;
       if (!existingIds.has(id)) {
+        const isResolved = i % 5 === 0;
+        const solver = isResolved ? seedSolverForReport(i) : null;
         data.reports.push({
           id,
           userId: 'demo',
@@ -154,10 +214,13 @@
           lat: r.lat,
           lng: r.lng,
           urgency: r.urgency,
-          phone: r.phone || '',
-          status: i % 5 === 0 ? 'resolved' : 'open',
+          phone: r.phone || seedDemoPhone(i),
+          status: isResolved ? 'resolved' : 'open',
           createdAt: Date.now() - (i + 1) * 3600000 * 4,
           groupId: null,
+          solverName: solver ? solver.name : null,
+          solverPhone: solver ? solver.phone : null,
+          certificateId: isResolved ? 'VEC-SEED-' + i : null,
         });
       }
     });
@@ -578,7 +641,6 @@
     CATEGORIES,
     REPORT_TYPES,
     SPONSOR_OFFERS,
-    PLATFORM_CONTACTS,
     URGENCY_WEIGHT,
     on,
     register,
@@ -605,6 +667,8 @@
     redeemOffer,
     updateUserProfile,
     whatsAppLink,
+    getReportContactPhone,
+    getSolverContactPhone,
     normalizePhone,
     detectCategory,
     CARTAGENA_CENTER: [10.391, -75.512],

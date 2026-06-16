@@ -125,20 +125,6 @@
     `).join('');
   }
 
-  function renderPlatformContacts() {
-    const el = document.getElementById('platform-contacts');
-    if (!el) return;
-
-    el.innerHTML = VeciIA.PLATFORM_CONTACTS.map((c, i) => {
-      const wa = VeciIA.whatsAppLink(c.phone, 'Hola VeciIA, necesito apoyo con un reporte comunitario.');
-      return `
-        <a href="${wa}" target="_blank" rel="noopener" class="contact-wa-btn">
-          💬 ${escapeHtml(c.name)} · +${c.phone}
-        </a>
-      `;
-    }).join('');
-  }
-
   function openCertificateModal(certId) {
     const cert = VeciIA.getCertificate(certId);
     if (!cert) return;
@@ -206,7 +192,6 @@
     renderCertificates(user);
     renderMyReports(user);
     renderRedemptions(user);
-    renderPlatformContacts();
   }
 
   document.getElementById('cuenta-profile-form')?.addEventListener('submit', (e) => {
@@ -225,7 +210,7 @@
     const cert = VeciIA.getCertificate(activeCertId);
     if (!cert) return;
     const msg = VeciIA.getCertificateMessage(cert);
-    const wa = VeciIA.whatsAppLink(cert.authorPhone || VeciIA.PLATFORM_CONTACTS[0].phone, msg);
+    const wa = VeciIA.whatsAppLink(cert.authorPhone || cert.solverPhone, msg);
     if (wa) window.open(wa, '_blank', 'noopener');
   });
 
