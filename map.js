@@ -299,7 +299,6 @@
   function renderReportsList(allReports) {
     const list = document.getElementById('reports-list');
     const footEl = document.getElementById('map-reports-foot');
-    const wrap = list?.closest('.reports-preview-wrap');
     if (!list) return;
 
     const open = allReports.filter((r) => r.status === 'open');
@@ -308,7 +307,7 @@
     const shown = showAll ? open : open.slice(0, limit);
     const remaining = showAll ? 0 : Math.max(0, open.length - limit);
 
-    wrap?.classList.toggle('reports-preview-wrap--expanded', showAll);
+    list.classList.toggle('reports-table-host--expanded', showAll);
 
     if (!shown.length) {
       list.innerHTML = '<p class="empty-list map-reports-empty">No hay reportes abiertos con este filtro.</p>';
@@ -316,7 +315,7 @@
       return;
     }
 
-    list.innerHTML = shown.map((r) => VeciIA.buildReportPreviewCard(r)).join('');
+    list.innerHTML = VeciIA.buildReportsTable(shown);
 
     if (footEl) {
       if (remaining > 0) {
@@ -398,6 +397,11 @@
       return;
     }
     if (e.target.closest('.report-wa-btn, .report-chip--wa')) return;
+    const row = e.target.closest('.reports-table-row');
+    if (row && !e.target.closest('a, button, .report-chip')) {
+      focusReportOnMap(row);
+      return;
+    }
     const focusBtn = e.target.closest('.report-preview-focus');
     if (focusBtn) {
       const card = focusBtn.closest('.report-preview-card');

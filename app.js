@@ -742,6 +742,46 @@
 
   const REPORT_PREVIEW_LIMIT = 5;
 
+  function buildReportTableRow(report) {
+    const cat = CATEGORIES[report.category] || CATEGORIES.otro;
+    const isResolved = report.status === 'resolved';
+    const statusLabel = isResolved ? 'Resuelto' : 'Abierto';
+    const statusClass = isResolved ? 'is-resolved' : 'is-open';
+    const solverBit = isResolved && report.solverName
+      ? ` · ✅ ${escapeHtml(report.solverName)}`
+      : '';
+
+    return `
+      <tr class="reports-table-row ${statusClass}"
+        data-id="${report.id}" data-lat="${report.lat}" data-lng="${report.lng}">
+        <td class="reports-table-icon" aria-hidden="true">${cat.icon}</td>
+        <td class="reports-table-main">
+          <span class="reports-table-badge">${statusLabel}</span>
+          <p class="reports-table-desc">${escapeHtml(report.description)}</p>
+          <p class="reports-table-meta">${escapeHtml(report.userName)} · ${escapeHtml(report.barrio)}${solverBit}</p>
+        </td>
+        <td class="reports-table-actions">${buildReportActionsHtml(report, 'compact')}</td>
+      </tr>`;
+  }
+
+  function buildReportsTable(reports) {
+    if (!reports.length) return '';
+    const rows = reports.map(buildReportTableRow).join('');
+    return `
+      <div class="reports-table-scroll">
+        <table class="reports-table">
+          <thead class="reports-table-head">
+            <tr>
+              <th scope="col" aria-label="Tipo"></th>
+              <th scope="col">Reporte</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
   function buildReportPreviewCard(report) {
     const cat = CATEGORIES[report.category] || CATEGORIES.otro;
     const isResolved = report.status === 'resolved';
@@ -841,6 +881,7 @@
     buildReportContactsHtml,
     buildReportActionsHtml,
     buildReportPreviewCard,
+    buildReportsTable,
     REPORT_PREVIEW_LIMIT,
     escapeHtml,
     normalizePhone,

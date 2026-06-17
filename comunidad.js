@@ -165,6 +165,36 @@
     return { remeasure, nudge, pauseBriefly };
   }
 
+  function buildStatsRow(item, isCategory) {
+    const icon = isCategory ? item.icon : '📍';
+    const name = isCategory ? escapeHtml(item.label) : escapeHtml(item.name);
+
+    return `
+      <div class="stats-row">
+        <div class="stats-row-name">
+          <span class="stats-row-icon" aria-hidden="true">${icon}</span>
+          <span class="stats-row-text">${name}</span>
+        </div>
+        <span class="stats-row-num stats-row-num--open" title="Abiertos">${item.open}</span>
+        <span class="stats-row-num stats-row-num--resolved" title="Resueltos">${item.resolved}</span>
+      </div>`;
+  }
+
+  function buildStatsTable(rowsHtml, headLabel) {
+    if (!rowsHtml) {
+      return '';
+    }
+    return `
+      <div class="stats-table">
+        <div class="stats-table-head">
+          <span class="stats-th-name">${headLabel}</span>
+          <span class="stats-th-num stats-th-num--open">Ab.</span>
+          <span class="stats-th-num stats-th-num--resolved">Res.</span>
+        </div>
+        ${rowsHtml}
+      </div>`;
+  }
+
   function renderCommunityCharts() {
     const el = document.getElementById('community-charts');
     if (!el) return;
@@ -173,70 +203,84 @@
     const openPct = stats.total ? (stats.openCount / stats.total) * 100 : 0;
     const resolvedPct = stats.total ? (stats.resolvedCount / stats.total) * 100 : 0;
 
-    const categoryRows = stats.byCategory.map((c) => {
-      const openW = (c.open / stats.maxCategoryTotal) * 100;
-      const resW = (c.resolved / stats.maxCategoryTotal) * 100;
-      return `
-        <div class="chart-compare-row">
-          <span class="chart-compare-label">${c.icon} ${escapeHtml(c.label)}</span>
-          <div class="chart-compare-track" title="${c.open} abiertos, ${c.resolved} resueltos">
-            <div class="chart-compare-bar chart-compare-bar--open" style="width:${openW}%"></div>
-            <div class="chart-compare-bar chart-compare-bar--resolved" style="width:${resW}%"></div>
-          </div>
-          <span class="chart-compare-nums"><span class="num-open">${c.open}</span><span class="num-sep">/</span><span class="num-resolved">${c.resolved}</span></span>
-        </div>`;
-    }).join('') || '<p class="chart-empty">Sin datos por categoría.</p>';
+    const categoryRows = stats.byCategory
+      .map((c) => buildStatsRow(c, true))
+      .join('');
 
-    const barrioRows = stats.byBarrio.map((b) => {
-      const openW = (b.open / stats.maxBarrioTotal) * 100;
-      const resW = (b.resolved / stats.maxBarrioTotal) * 100;
-      return `
-        <div class="chart-compare-row">
-          <span class="chart-compare-label">${escapeHtml(b.name)}</span>
-          <div class="chart-compare-track" title="${b.open} abiertos, ${b.resolved} resueltos">
-            <div class="chart-compare-bar chart-compare-bar--open" style="width:${openW}%"></div>
-            <div class="chart-compare-bar chart-compare-bar--resolved" style="width:${resW}%"></div>
-          </div>
-          <span class="chart-compare-nums"><span class="num-open">${b.open}</span><span class="num-sep">/</span><span class="num-resolved">${b.resolved}</span></span>
-        </div>`;
-    }).join('') || '<p class="chart-empty">Sin datos por barrio.</p>';
+    const barrioRows = stats.byBarrio
+      .map((b) => buildStatsRow(b, false))
+      .join('');
 
     el.innerHTML = `
-      <div class="community-charts-grid">
-        <div class="chart-card chart-card--summary">
-          <h3 class="chart-card-title">Comparativa general</h3>
-          <div class="chart-summary-stats">
-            <div class="chart-mini-stat chart-mini-stat--open">
-              <strong>${stats.openCount}</strong>
-              <span>Abiertos</span>
-            </div>
-            <div class="chart-mini-stat chart-mini-stat--resolved">
-              <strong>${stats.resolvedCount}</strong>
-              <span>Resueltos</span>
-            </div>
-            <div class="chart-mini-stat">
+      <div class="stats-panel">
+        <div class="stats-overview">
+          <div class="stats-donut" style="--open:${openPct};--resolved:${resolvedPct}"
+            role="img" aria-label="${stats.openCount} abiertos y ${stats.resolvedCount} resueltos">
+            <div class="stats-donut-inner">
               <strong>${stats.resolutionRate}%</strong>
-              <span>Tasa resolución</span>
+              <span>resueltos</span>
             </div>
           </div>
-          <div class="chart-stack-bar" role="img" aria-label="${stats.openCount} abiertos y ${stats.resolvedCount} resueltos">
-            <div class="chart-stack-seg chart-stack-seg--open" style="width:${openPct}%"></div>
-            <div class="chart-stack-seg chart-stack-seg--resolved" style="width:${resolvedPct}%"></div>
-          </div>
-          <div class="chart-legend">
-            <span><i class="chart-dot chart-dot--open"></i> Abiertos</span>
-            <span><i class="chart-dot chart-dot--resolved"></i> Resueltos</span>
+          <div class="stats-overview-legend">
+            <div class="stats-legend-item stats-legend-item--open">
+              <span class="stats-legend-dot"></span>
+              <span>Abiertos</span>
+              <strong>${stats.openCount}</strong>
+            </div>
+            <div class="stats-legend-item stats-legend-item--resolved">
+              <span class="stats-legend-dot"></span>
+              <span>Resueltos</span>
+              <strong>${stats.resolvedCount}</strong>
+            </div>
+            <div class="stats-legend-item stats-legend-item--total">
+              <span class="stats-legend-dot"></span>
+              <span>Total</span>
+              <strong>${stats.total}</strong>
+            </div>
           </div>
         </div>
-        <div class="chart-card">
-          <h3 class="chart-card-title">Por categoría <small>A/R</small></h3>
-          <div class="chart-compare-list">${categoryRows}</div>
+
+        <div class="stats-tabs" id="community-stats-tabs" role="tablist" aria-label="Desglose de reportes">
+          <button type="button" class="stats-tab active" data-stats-tab="category" role="tab" aria-selected="true">📂 Categoría</button>
+          <button type="button" class="stats-tab" data-stats-tab="barrio" role="tab" aria-selected="false">📍 Barrio</button>
         </div>
-        <div class="chart-card">
-          <h3 class="chart-card-title">Por barrio <small>A/R</small></h3>
-          <div class="chart-compare-list">${barrioRows}</div>
+
+        <div class="stats-breakdowns">
+          <div class="stats-breakdown" data-stats-panel="category">
+            <h3 class="stats-breakdown-title">Por categoría</h3>
+            ${buildStatsTable(categoryRows, 'Categoría') || '<p class="stats-empty">Sin datos por categoría.</p>'}
+          </div>
+          <div class="stats-breakdown is-mobile-hidden" data-stats-panel="barrio">
+            <h3 class="stats-breakdown-title">Por barrio</h3>
+            ${buildStatsTable(barrioRows, 'Barrio') || '<p class="stats-empty">Sin datos por barrio.</p>'}
+          </div>
         </div>
       </div>`;
+
+    initCommunityStatsTabs();
+  }
+
+  function initCommunityStatsTabs() {
+    const root = document.getElementById('community-stats-tabs');
+    if (!root) return;
+
+    const tabs = root.querySelectorAll('[data-stats-tab]');
+    const panels = root.parentElement?.querySelectorAll('[data-stats-panel]') || [];
+
+    function setTab(id) {
+      tabs.forEach((tab) => {
+        const active = tab.dataset.statsTab === id;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      panels.forEach((panel) => {
+        panel.classList.toggle('is-mobile-hidden', panel.dataset.statsPanel !== id);
+      });
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => setTab(tab.dataset.statsTab));
+    });
   }
 
   function getBoardReports() {
@@ -253,7 +297,6 @@
     const list = document.getElementById('community-board-list');
     const countEl = document.getElementById('community-list-count');
     const footEl = document.getElementById('community-board-foot');
-    const wrap = list?.closest('.reports-preview-wrap');
     if (!list) return;
 
     const all = getBoardReports();
@@ -262,7 +305,7 @@
     const reports = showAll ? all : all.slice(0, limit);
     const remaining = showAll ? 0 : Math.max(0, all.length - limit);
 
-    wrap?.classList.toggle('reports-preview-wrap--expanded', showAll);
+    list.classList.toggle('reports-table-host--expanded', showAll);
 
     if (countEl) {
       countEl.textContent = all.length
@@ -276,7 +319,7 @@
       return;
     }
 
-    list.innerHTML = reports.map((r) => VeciIA.buildReportPreviewCard(r)).join('');
+    list.innerHTML = VeciIA.buildReportsTable(reports);
 
     renderPreviewFoot(footEl, {
       remaining,
@@ -399,6 +442,11 @@
   function initReportActions() {
     document.body.addEventListener('click', (e) => {
       const focusBtn = e.target.closest('.report-preview-focus');
+      const tableRow = e.target.closest('.reports-table-row');
+      if (tableRow && !e.target.closest('a, button, .report-chip')) {
+        window.location.href = 'mapa.html';
+        return;
+      }
       if (focusBtn && !e.target.closest('a, .report-chip, .report-resolve-open, .report-cert-btn')) {
         window.location.href = 'mapa.html';
         return;
@@ -486,6 +534,27 @@
     });
   }
 
+  function initDashboardTabs() {
+    const tabs = document.querySelectorAll('[data-dashboard-tab]');
+    const panels = document.querySelectorAll('[data-dashboard-panel]');
+    if (!tabs.length || !panels.length) return;
+
+    function setTab(id) {
+      tabs.forEach((tab) => {
+        const active = tab.dataset.dashboardTab === id;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      panels.forEach((panel) => {
+        panel.classList.toggle('is-mobile-hidden', panel.dataset.dashboardPanel !== id);
+      });
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => setTab(tab.dataset.dashboardTab));
+    });
+  }
+
   function renderLeaderboard() {
     const board = document.getElementById('leaderboard');
     if (!board) return;
@@ -493,21 +562,23 @@
     const top = VeciIA.getTopNeighbors();
     const medals = ['🥇', '🥈', '🥉'];
     const maxScore = top[0]?.score || 1;
+    const tierClasses = ['leader-row--gold', 'leader-row--silver', 'leader-row--bronze'];
 
-    board.innerHTML = top.map((u, i) => `
-      <div class="leader-row" style="--rank:${i + 1};--pct:${(u.score / maxScore) * 100}">
+    board.innerHTML = top.map((u, i) => {
+      const resolvedBit = u.resolved ? ` · ${u.resolved} resueltos` : '';
+      return `
+      <div class="leader-row ${tierClasses[i] || ''}" style="--rank:${i + 1};--pct:${(u.score / maxScore) * 100}">
         <span class="leader-rank">${medals[i] || i + 1}</span>
         <div class="leader-info">
-          <strong>${escapeHtml(u.name)}</strong>
-          <small>${escapeHtml(u.barrio)}</small>
+          <div class="leader-head">
+            <strong>${escapeHtml(u.name)}</strong>
+            <span class="leader-score">${u.score}<small>pts</small></span>
+          </div>
+          <small class="leader-meta">${escapeHtml(u.barrio)} · ${u.reports} reportes${resolvedBit}</small>
           <div class="leader-bar"><div class="leader-bar-fill"></div></div>
         </div>
-        <div class="leader-stats">
-          <span class="leader-score">${u.score}</span>
-          <small>pts</small>
-        </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
 
     observeLeaderboard(board);
   }
@@ -541,15 +612,17 @@
     const max = sorted[0]?.[1] || 1;
 
     zones.innerHTML = sorted.map(([name, count], i) => `
-      <div class="zone-row" data-delay="${i * 100}">
-        <span class="zone-rank">${i + 1}</span>
+      <div class="zone-row${i === 0 ? ' zone-row--top' : ''}" data-delay="${i * 100}">
+        <span class="zone-rank" aria-hidden="true">${i + 1}</span>
         <div class="zone-info">
-          <span class="zone-name">${escapeHtml(name)}</span>
+          <div class="zone-head">
+            <span class="zone-name">${escapeHtml(name)}</span>
+            <span class="zone-count"><strong>${count}</strong><small>abiertos</small></span>
+          </div>
           <div class="zone-bar-track">
             <div class="zone-bar-fill" style="--target:${(count / max) * 100}%"></div>
           </div>
         </div>
-        <span class="zone-count">${count}</span>
       </div>
     `).join('');
 
@@ -584,6 +657,7 @@
 
   initActivityGallery();
   initReportActions();
+  initDashboardTabs();
   refreshAll();
 
   VeciIA.on('ready', refreshAll);
