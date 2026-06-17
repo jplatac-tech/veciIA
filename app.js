@@ -740,6 +740,30 @@
     return html;
   }
 
+  const REPORT_PREVIEW_LIMIT = 5;
+
+  function buildReportPreviewCard(report) {
+    const cat = CATEGORIES[report.category] || CATEGORIES.otro;
+    const isResolved = report.status === 'resolved';
+    const statusLabel = isResolved ? 'Resuelto' : 'Abierto';
+    const solverLine = isResolved && report.solverName
+      ? `<p class="report-preview-solver">✅ ${escapeHtml(report.solverName)}</p>`
+      : '';
+
+    return `
+      <article class="report-preview-card ${isResolved ? 'is-resolved' : 'is-open'}"
+        data-id="${report.id}" data-lat="${report.lat}" data-lng="${report.lng}" role="listitem">
+        <button type="button" class="report-preview-focus" aria-label="Ver en el mapa">
+          <span class="report-preview-icon">${cat.icon}</span>
+          <span class="report-preview-status">${statusLabel}</span>
+          <p class="report-preview-desc">${escapeHtml(report.description)}</p>
+          <p class="report-preview-meta"><strong>${escapeHtml(report.userName)}</strong> · ${escapeHtml(report.barrio)}</p>
+          ${solverLine}
+        </button>
+        ${buildReportActionsHtml(report, 'compact')}
+      </article>`;
+  }
+
   function getCommunityCompareStats() {
     const reports = data.reports.filter((r) => r.type !== 'informativo');
     const open = reports.filter((r) => r.status === 'open');
@@ -816,6 +840,8 @@
     getSolverContactPhone,
     buildReportContactsHtml,
     buildReportActionsHtml,
+    buildReportPreviewCard,
+    REPORT_PREVIEW_LIMIT,
     escapeHtml,
     normalizePhone,
     detectCategory,

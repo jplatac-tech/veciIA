@@ -140,32 +140,6 @@
     return { remeasure, nudge, pauseBriefly };
   }
 
-  function buildCompactRow(report) {
-    const cat = VeciIA.CATEGORIES[report.category] || VeciIA.CATEGORIES.otro;
-    const isResolved = report.status === 'resolved';
-    const statusClass = isResolved ? 'is-resolved' : 'is-open';
-    const statusLabel = isResolved ? 'Resuelto' : 'Abierto';
-    const solverBit = isResolved && report.solverName
-      ? ` · ✅ ${escapeHtml(report.solverName)}`
-      : '';
-
-    return `
-      <article class="community-row ${statusClass}" data-id="${report.id}" role="listitem">
-        <div class="community-row-head">
-          <span class="community-row-icon" aria-hidden="true">${cat.icon}</span>
-          <div class="community-row-text">
-            <p class="community-row-title">${escapeHtml(report.description)}</p>
-            <p class="community-row-meta">
-              <strong>${escapeHtml(report.userName)}</strong> · ${escapeHtml(report.barrio)}${solverBit}
-            </p>
-          </div>
-          <span class="community-row-pill community-row-pill--${isResolved ? 'resolved' : 'open'}">${statusLabel}</span>
-        </div>
-        ${VeciIA.buildReportActionsHtml(report, 'compact')}
-      </article>
-    `;
-  }
-
   function renderCommunityCharts() {
     const el = document.getElementById('community-charts');
     if (!el) return;
@@ -253,25 +227,35 @@
   function renderCommunityBoard() {
     const list = document.getElementById('community-board-list');
     const countEl = document.getElementById('community-list-count');
+    const footEl = document.getElementById('community-board-foot');
     if (!list) return;
 
-    const reports = getBoardReports().slice(0, 16);
+    const all = getBoardReports();
+    const limit = VeciIA.REPORT_PREVIEW_LIMIT;
+    const reports = all.slice(0, limit);
+    const remaining = Math.max(0, all.length - limit);
 
     if (countEl) {
-      countEl.textContent = reports.length ? `${reports.length} casos` : '';
+      countEl.textContent = all.length ? `${Math.min(limit, all.length)} de ${all.length}` : '';
     }
 
     if (!reports.length) {
-      const emptyMsg = activeBoardTab === 'open'
-        ? 'No hay reportes abiertos.'
-        : activeBoardTab === 'resolved'
-          ? 'No hay casos resueltos aún.'
-          : 'No hay reportes para mostrar.';
-      list.innerHTML = `<p class="empty-list community-empty">${emptyMsg}</p>`;
+      list.innerHTML = '';
+      if (footEl) footEl.hidden = true;
       return;
     }
 
-    list.innerHTML = reports.map(buildCompactRow).join('');
+    list.innerHTML = reports.map((r) => VeciIA.buildReportPreviewCard(r)).join('');
+
+    if (footEl) {
+      if (remaining > 0) {
+        footEl.hidden = false;
+        footEl.innerHTML = `+${remaining} reportes más · <a href="mapa.html">Explorar en el mapa</a>`;
+      } else {
+        footEl.hidden = false;
+        footEl.innerHTML = '<a href="mapa.html">Ver todos en el mapa</a>';
+      }
+    }
   }
 
   function buildActivityCard(a) {
@@ -384,6 +368,12 @@
 
   function initReportActions() {
     document.body.addEventListener('click', (e) => {
+      const focusBtn = e.target.closest('.report-preview-focus');
+      if (focusBtn && !e.target.closest('a, .report-chip, .report-resolve-open, .report-cert-btn')) {
+        window.location.href = 'mapa.html';
+        return;
+      }
+
       const resolveBtn = e.target.closest('.report-resolve-open');
       if (resolveBtn) {
         e.preventDefault();

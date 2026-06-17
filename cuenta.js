@@ -52,15 +52,18 @@
   }
 
   function renderCertificates(user) {
+    const block = document.getElementById('cuenta-block-certs');
     const list = document.getElementById('certificates-list');
-    if (!list) return;
-    const certs = VeciIA.getUserCertificates(user.id);
+    if (!block || !list) return;
 
+    const certs = VeciIA.getUserCertificates(user.id);
     if (!certs.length) {
-      list.innerHTML = '<p class="empty-list">Aún no tienes constancias. Cuando marques un problema como resuelto, aparecerá aquí.</p>';
+      block.hidden = true;
+      list.innerHTML = '';
       return;
     }
 
+    block.hidden = false;
     list.innerHTML = certs.map((c) => `
       <article class="cert-card">
         <div class="cert-card-head">
@@ -79,16 +82,19 @@
   }
 
   function renderMyReports(user) {
+    const block = document.getElementById('cuenta-block-reports');
     const list = document.getElementById('my-reports-list');
-    if (!list) return;
-    const reports = VeciIA.getUserReports(user.id).slice(0, 15);
+    if (!block || !list) return;
 
+    const reports = VeciIA.getUserReports(user.id);
     if (!reports.length) {
-      list.innerHTML = '<p class="empty-list">No has publicado reportes aún.</p>';
+      block.hidden = true;
+      list.innerHTML = '';
       return;
     }
 
-    list.innerHTML = reports.map((r) => {
+    block.hidden = false;
+    list.innerHTML = reports.slice(0, 10).map((r) => {
       const cat = VeciIA.CATEGORIES[r.category] || VeciIA.CATEGORIES.otro;
       const typeLabel = r.type === 'informativo' ? 'ℹ️ Informativo' : '🔧 Problema';
       const status = r.status === 'resolved'
@@ -106,15 +112,18 @@
   }
 
   function renderRedemptions(user) {
+    const block = document.getElementById('cuenta-block-redemptions');
     const list = document.getElementById('redemptions-list');
-    if (!list) return;
-    const items = VeciIA.getUserRedemptions(user.id);
+    if (!block || !list) return;
 
+    const items = VeciIA.getUserRedemptions(user.id);
     if (!items.length) {
-      list.innerHTML = '<p class="empty-list">Aún no has canjeado puntos.</p>';
+      block.hidden = true;
+      list.innerHTML = '';
       return;
     }
 
+    block.hidden = false;
     list.innerHTML = items.map((r) => `
       <article class="redemption-card">
         <strong>${escapeHtml(r.title)}</strong>

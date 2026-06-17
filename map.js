@@ -295,52 +295,33 @@
     updateStats();
   }
 
-  function buildListActions(report) {
-    return VeciIA.buildReportActionsHtml(report);
-  }
-
-  function renderReportItem(r) {
-    const cat = VeciIA.CATEGORIES[r.category] || VeciIA.CATEGORIES.otro;
-    const group = VeciIA.getGroupCount(r);
-    const typeTag = r.type === 'informativo' ? 'ℹ️ ' : '';
-    const resolvedTag = r.status === 'resolved' ? '✅ ' : '';
-    return `
-      <article class="report-item${r.status === 'resolved' ? ' report-item--resolved' : ''}" data-lat="${r.lat}" data-lng="${r.lng}" data-id="${r.id}">
-        <button type="button" class="report-item-main">
-          <span class="report-item-icon">${cat.icon}</span>
-          <div class="report-item-body">
-            <strong>${resolvedTag}${typeTag}${escapeHtml(r.description.slice(0, 60))}${r.description.length > 60 ? '…' : ''}</strong>
-            <span>${escapeHtml(r.userName)} · ${escapeHtml(r.barrio)}${group > 1 ? ` · 🤖 ×${group}` : ''}${r.status === 'resolved' && r.solverName ? ` · resolvió ${escapeHtml(r.solverName)}` : ''}</span>
-          </div>
-        </button>
-        ${buildListActions(r)}
-      </article>
-    `;
-  }
-
   function renderReportsList(allReports) {
     const list = document.getElementById('reports-list');
+    const footEl = document.getElementById('map-reports-foot');
     if (!list) return;
 
-    const open = allReports.filter((r) => r.status === 'open').slice(0, 20);
-    const resolved = allReports.filter((r) => r.status === 'resolved').slice(0, 5);
+    const open = allReports.filter((r) => r.status === 'open');
+    const limit = VeciIA.REPORT_PREVIEW_LIMIT;
+    const shown = open.slice(0, limit);
+    const remaining = Math.max(0, open.length - limit);
 
-    if (!open.length && !resolved.length) {
-      list.innerHTML = '<p class="empty-list">No hay reportes con este filtro.</p>';
+    if (!shown.length) {
+      list.innerHTML = '<p class="empty-list map-reports-empty">No hay reportes abiertos con este filtro.</p>';
+      if (footEl) footEl.hidden = true;
       return;
     }
 
-    let html = '';
-    if (open.length) {
-      html += open.map(renderReportItem).join('');
-    } else {
-      html += '<p class="empty-list">No hay reportes abiertos con este filtro.</p>';
+    list.innerHTML = shown.map((r) => VeciIA.buildReportPreviewCard(r)).join('');
+
+    if (footEl) {
+      if (remaining > 0) {
+        footEl.hidden = false;
+        footEl.textContent = '';
+        footEl.innerHTML = `+${remaining} en el mapa · desliza las tarjetas o toca el mapa para ver más`;
+      } else {
+        footEl.hidden = true;
+      }
     }
-    if (resolved.length) {
-      html += '<h3 class="reports-list-subtitle">✅ Resueltos recientes</h3>';
-      html += resolved.map(renderReportItem).join('');
-    }
-    list.innerHTML = html;
   }
 
   function focusReportOnMap(item) {
@@ -405,9 +386,12 @@
       openCertificateModal(certBtn.dataset.cert);
       return;
     }
-    if (e.target.closest('.report-wa-btn')) return;
-    const main = e.target.closest('.report-item-main');
-    if (main) focusReportOnMap(main.closest('.report-item'));
+    if (e.target.closest('.report-wa-btn, .report-chip--wa')) return;
+    const focusBtn = e.target.closest('.report-preview-focus');
+    if (focusBtn) {
+      const card = focusBtn.closest('.report-preview-card');
+      if (card) focusReportOnMap(card);
+    }
   });
 
   document.getElementById('cartagena-map')?.addEventListener('click', (e) => {

@@ -3797,7 +3797,11 @@ body.logged-in #cuenta-guest {
     z-index: 10;
   }
 
-  body[data-page="mapa"] .reports-list {
+  body[data-page="mapa"] .reports-section {
+    flex: 0 0 auto;
+  }
+
+  body[data-page="mapa"] .map-reports-preview {
     max-height: none;
   }
 }
@@ -4496,6 +4500,170 @@ body[data-page="comunidad"] .benefit-card {
   border: 1px solid #eef0f2;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  padding-bottom: 8px;
+}
+
+/* ── Report preview strip (carousel) ── */
+.reports-preview-wrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 12px;
+  scrollbar-width: none;
+  padding: 8px 12px 4px;
+}
+
+.reports-preview-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.reports-preview-track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  min-width: min(100%, 1px);
+}
+
+.report-preview-card {
+  flex: 0 0 min(240px, 82vw);
+  scroll-snap-align: start;
+  background: #fff;
+  border: 1px solid #eef0f2;
+  border-radius: 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.report-preview-card.is-open {
+  border-top: 3px solid #f59e0b;
+}
+
+.report-preview-card.is-resolved {
+  border-top: 3px solid #10b981;
+}
+
+.report-preview-focus {
+  display: block;
+  width: 100%;
+  padding: 12px 12px 8px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: var(--font);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.report-preview-focus:hover {
+  background: var(--bg-alt);
+}
+
+.report-preview-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.report-preview-status {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  vertical-align: middle;
+}
+
+.report-preview-card.is-resolved .report-preview-status {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.report-preview-desc {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+  margin: 8px 0 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--text);
+}
+
+.report-preview-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.report-preview-solver {
+  font-size: 0.72rem;
+  color: #059669;
+  margin: 4px 0 0;
+}
+
+.report-preview-card .report-actions-compact {
+  padding: 0 10px 10px;
+  gap: 5px;
+}
+
+.report-preview-card .report-chip {
+  font-size: 0.65rem;
+  padding: 5px 8px;
+}
+
+.reports-preview-foot {
+  padding: 6px 14px 10px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+.reports-preview-foot a {
+  color: var(--green-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.map-reports-preview {
+  padding: 4px 0 0;
+}
+
+.map-reports-empty {
+  padding: 16px 12px;
+  font-size: 0.85rem;
+}
+
+@media (min-width: 768px) {
+  .reports-preview-wrap {
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding: 8px 12px;
+  }
+
+  .reports-preview-track {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    width: 100%;
+    gap: 12px;
+  }
+
+  .report-preview-card {
+    flex: none;
+    width: auto;
+    min-width: 0;
+  }
 }
 
 .community-list-toolbar {
@@ -4715,12 +4883,16 @@ body[data-page="comunidad"] .benefit-card {
     padding: 8px 10px;
   }
 
-  .community-row {
-    padding: 8px 10px;
+  .community-list-panel {
+    border-radius: 12px;
   }
 
-  .community-compact-list {
-    max-height: none;
+  .report-preview-card {
+    flex: 0 0 min(220px, 88vw);
+  }
+
+  .reports-preview-foot {
+    font-size: 0.72rem;
   }
 }
 
