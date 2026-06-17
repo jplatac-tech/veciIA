@@ -9,6 +9,7 @@
   let markersVisible = true;
   let selectedLatLng = null;
   let activeFilter = 'all';
+  let mapReportsExpanded = false;
 
   const urgencyColors = {
     baja: '#2ecc71',
@@ -298,12 +299,16 @@
   function renderReportsList(allReports) {
     const list = document.getElementById('reports-list');
     const footEl = document.getElementById('map-reports-foot');
+    const wrap = list?.closest('.reports-preview-wrap');
     if (!list) return;
 
     const open = allReports.filter((r) => r.status === 'open');
     const limit = VeciIA.REPORT_PREVIEW_LIMIT;
-    const shown = open.slice(0, limit);
-    const remaining = Math.max(0, open.length - limit);
+    const showAll = mapReportsExpanded;
+    const shown = showAll ? open : open.slice(0, limit);
+    const remaining = showAll ? 0 : Math.max(0, open.length - limit);
+
+    wrap?.classList.toggle('reports-preview-wrap--expanded', showAll);
 
     if (!shown.length) {
       list.innerHTML = '<p class="empty-list map-reports-empty">No hay reportes abiertos con este filtro.</p>';
@@ -316,10 +321,16 @@
     if (footEl) {
       if (remaining > 0) {
         footEl.hidden = false;
-        footEl.textContent = '';
-        footEl.innerHTML = `+${remaining} en el mapa · desliza las tarjetas o toca el mapa para ver más`;
+        footEl.innerHTML = `
+          <button type="button" class="reports-expand-btn" id="map-expand-btn">Ver todos (+${remaining})</button>
+          <span class="reports-preview-sep">·</span>
+          <span class="reports-preview-hint">o toca el mapa</span>`;
+      } else if (showAll && open.length > limit) {
+        footEl.hidden = false;
+        footEl.innerHTML = `<button type="button" class="reports-expand-btn reports-expand-btn--collapse" id="map-collapse-btn">Ver menos</button>`;
       } else {
         footEl.hidden = true;
+        footEl.innerHTML = '';
       }
     }
   }
@@ -467,7 +478,27 @@
 
   document.getElementById('filter-category')?.addEventListener('change', (e) => {
     activeFilter = e.target.value;
+    mapReportsExpanded = false;
     refreshMap();
+  });
+
+  document.getElementById('map-reports-foot')?.addEventListener('click', (e) => {
+    if (e.target.closest('#map-expand-btn')) {
+      e.preventDefault();
+      mapReportsExpanded = true;
+      renderReportsList(
+        VeciIA.getReports(activeFilter === 'all' ? {} : { category: activeFilter })
+      );
+      return;
+    }
+    if (e.target.closest('#map-collapse-btn')) {
+      e.preventDefault();
+      mapReportsExpanded = false;
+      renderReportsList(
+        VeciIA.getReports(activeFilter === 'all' ? {} : { category: activeFilter })
+      );
+      document.querySelector('.reports-section')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   });
 
   document.getElementById('btn-my-location')?.addEventListener('click', useMyLocation);

@@ -15,7 +15,32 @@
   let allActivities = [];
   let activeFilter = 'all';
   let activeBoardTab = 'open';
+  let communityBoardExpanded = false;
   let activityMarquee = null;
+
+  function renderPreviewFoot(footEl, { remaining, total, expanded, expandId, collapseId, mapLink }) {
+    if (!footEl) return;
+    const limit = VeciIA.REPORT_PREVIEW_LIMIT;
+    if (remaining > 0) {
+      footEl.hidden = false;
+      footEl.innerHTML = `
+        <button type="button" class="reports-expand-btn" id="${expandId}">Ver todos (+${remaining})</button>
+        <span class="reports-preview-sep">·</span>
+        <a href="${mapLink}">Explorar en el mapa</a>`;
+    } else if (expanded && total > limit) {
+      footEl.hidden = false;
+      footEl.innerHTML = `
+        <button type="button" class="reports-expand-btn reports-expand-btn--collapse" id="${collapseId}">Ver menos</button>
+        <span class="reports-preview-sep">·</span>
+        <a href="${mapLink}">Ir al mapa</a>`;
+    } else if (total > 0) {
+      footEl.hidden = false;
+      footEl.innerHTML = `<a href="${mapLink}">Ver en el mapa</a>`;
+    } else {
+      footEl.hidden = true;
+      footEl.innerHTML = '';
+    }
+  }
 
   function escapeHtml(str) {
     return VeciIA.escapeHtml(str);
@@ -228,15 +253,21 @@
     const list = document.getElementById('community-board-list');
     const countEl = document.getElementById('community-list-count');
     const footEl = document.getElementById('community-board-foot');
+    const wrap = list?.closest('.reports-preview-wrap');
     if (!list) return;
 
     const all = getBoardReports();
     const limit = VeciIA.REPORT_PREVIEW_LIMIT;
-    const reports = all.slice(0, limit);
-    const remaining = Math.max(0, all.length - limit);
+    const showAll = communityBoardExpanded;
+    const reports = showAll ? all : all.slice(0, limit);
+    const remaining = showAll ? 0 : Math.max(0, all.length - limit);
+
+    wrap?.classList.toggle('reports-preview-wrap--expanded', showAll);
 
     if (countEl) {
-      countEl.textContent = all.length ? `${Math.min(limit, all.length)} de ${all.length}` : '';
+      countEl.textContent = all.length
+        ? (showAll ? `${all.length} casos` : `${Math.min(limit, all.length)} de ${all.length}`)
+        : '';
     }
 
     if (!reports.length) {
@@ -247,15 +278,14 @@
 
     list.innerHTML = reports.map((r) => VeciIA.buildReportPreviewCard(r)).join('');
 
-    if (footEl) {
-      if (remaining > 0) {
-        footEl.hidden = false;
-        footEl.innerHTML = `+${remaining} reportes más · <a href="mapa.html">Explorar en el mapa</a>`;
-      } else {
-        footEl.hidden = false;
-        footEl.innerHTML = '<a href="mapa.html">Ver todos en el mapa</a>';
-      }
-    }
+    renderPreviewFoot(footEl, {
+      remaining,
+      total: all.length,
+      expanded: showAll,
+      expandId: 'community-expand-btn',
+      collapseId: 'community-collapse-btn',
+      mapLink: 'mapa.html',
+    });
   }
 
   function buildActivityCard(a) {
@@ -436,7 +466,23 @@
       tab.classList.add('active');
       tab.setAttribute('aria-selected', 'true');
       activeBoardTab = tab.dataset.boardTab;
+      communityBoardExpanded = false;
       renderCommunityBoard();
+    });
+
+    document.getElementById('community-board-foot')?.addEventListener('click', (e) => {
+      if (e.target.closest('#community-expand-btn')) {
+        e.preventDefault();
+        communityBoardExpanded = true;
+        renderCommunityBoard();
+        return;
+      }
+      if (e.target.closest('#community-collapse-btn')) {
+        e.preventDefault();
+        communityBoardExpanded = false;
+        renderCommunityBoard();
+        document.querySelector('.community-list-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
     });
   }
 
