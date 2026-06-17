@@ -140,68 +140,143 @@
     return { remeasure, nudge, pauseBriefly };
   }
 
-  function buildCommunityCard(report) {
+  function buildCompactRow(report) {
     const cat = VeciIA.CATEGORIES[report.category] || VeciIA.CATEGORIES.otro;
     const isResolved = report.status === 'resolved';
-    const statusBadge = isResolved
-      ? '<span class="community-card-badge community-card-badge--resolved">✅ Resuelto</span>'
-      : `<span class="community-card-badge community-card-badge--open">${cat.icon} Abierto</span>`;
-
-    const solverLine = isResolved && report.solverName
-      ? `<p class="community-card-solver">Resuelto por <strong>${escapeHtml(report.solverName)}</strong></p>`
+    const statusClass = isResolved ? 'is-resolved' : 'is-open';
+    const statusLabel = isResolved ? 'Resuelto' : 'Abierto';
+    const solverBit = isResolved && report.solverName
+      ? ` · ✅ ${escapeHtml(report.solverName)}`
       : '';
 
     return `
-      <article class="community-report-card" data-id="${report.id}">
-        <div class="community-card-top">
-          <span class="community-card-icon">${cat.icon}</span>
-          ${statusBadge}
+      <article class="community-row ${statusClass}" data-id="${report.id}" role="listitem">
+        <div class="community-row-head">
+          <span class="community-row-icon" aria-hidden="true">${cat.icon}</span>
+          <div class="community-row-text">
+            <p class="community-row-title">${escapeHtml(report.description)}</p>
+            <p class="community-row-meta">
+              <strong>${escapeHtml(report.userName)}</strong> · ${escapeHtml(report.barrio)}${solverBit}
+            </p>
+          </div>
+          <span class="community-row-pill community-row-pill--${isResolved ? 'resolved' : 'open'}">${statusLabel}</span>
         </div>
-        <h3 class="community-card-title">${escapeHtml(report.description)}</h3>
-        <p class="community-card-meta">
-          Publicado por <strong>${escapeHtml(report.userName)}</strong> · ${escapeHtml(report.barrio)}
-        </p>
-        ${solverLine}
-        ${VeciIA.buildReportActionsHtml(report)}
+        ${VeciIA.buildReportActionsHtml(report, 'compact')}
       </article>
     `;
   }
 
-  function renderCommunityBoard() {
-    const grid = document.getElementById('community-board-grid');
-    if (!grid) return;
+  function renderCommunityCharts() {
+    const el = document.getElementById('community-charts');
+    if (!el) return;
 
-    const reports = activeBoardTab === 'open'
-      ? VeciIA.getReports({ status: 'open' }).filter((r) => r.type !== 'informativo').slice(0, 12)
-      : VeciIA.getReports({ status: 'resolved' }).slice(0, 12);
+    const stats = VeciIA.getCommunityCompareStats();
+    const openPct = stats.total ? (stats.openCount / stats.total) * 100 : 0;
+    const resolvedPct = stats.total ? (stats.resolvedCount / stats.total) * 100 : 0;
 
-    if (!reports.length) {
-      grid.innerHTML = `<p class="empty-list">No hay reportes ${activeBoardTab === 'open' ? 'abiertos' : 'resueltos'} por ahora.</p>`;
-      return;
-    }
+    const categoryRows = stats.byCategory.map((c) => {
+      const openW = (c.open / stats.maxCategoryTotal) * 100;
+      const resW = (c.resolved / stats.maxCategoryTotal) * 100;
+      return `
+        <div class="chart-compare-row">
+          <span class="chart-compare-label">${c.icon} ${escapeHtml(c.label)}</span>
+          <div class="chart-compare-track" title="${c.open} abiertos, ${c.resolved} resueltos">
+            <div class="chart-compare-bar chart-compare-bar--open" style="width:${openW}%"></div>
+            <div class="chart-compare-bar chart-compare-bar--resolved" style="width:${resW}%"></div>
+          </div>
+          <span class="chart-compare-nums"><span class="num-open">${c.open}</span><span class="num-sep">/</span><span class="num-resolved">${c.resolved}</span></span>
+        </div>`;
+    }).join('') || '<p class="chart-empty">Sin datos por categoría.</p>';
 
-    grid.innerHTML = reports.map(buildCommunityCard).join('');
+    const barrioRows = stats.byBarrio.map((b) => {
+      const openW = (b.open / stats.maxBarrioTotal) * 100;
+      const resW = (b.resolved / stats.maxBarrioTotal) * 100;
+      return `
+        <div class="chart-compare-row">
+          <span class="chart-compare-label">${escapeHtml(b.name)}</span>
+          <div class="chart-compare-track" title="${b.open} abiertos, ${b.resolved} resueltos">
+            <div class="chart-compare-bar chart-compare-bar--open" style="width:${openW}%"></div>
+            <div class="chart-compare-bar chart-compare-bar--resolved" style="width:${resW}%"></div>
+          </div>
+          <span class="chart-compare-nums"><span class="num-open">${b.open}</span><span class="num-sep">/</span><span class="num-resolved">${b.resolved}</span></span>
+        </div>`;
+    }).join('') || '<p class="chart-empty">Sin datos por barrio.</p>';
+
+    el.innerHTML = `
+      <div class="community-charts-grid">
+        <div class="chart-card chart-card--summary">
+          <h3 class="chart-card-title">Comparativa general</h3>
+          <div class="chart-summary-stats">
+            <div class="chart-mini-stat chart-mini-stat--open">
+              <strong>${stats.openCount}</strong>
+              <span>Abiertos</span>
+            </div>
+            <div class="chart-mini-stat chart-mini-stat--resolved">
+              <strong>${stats.resolvedCount}</strong>
+              <span>Resueltos</span>
+            </div>
+            <div class="chart-mini-stat">
+              <strong>${stats.resolutionRate}%</strong>
+              <span>Tasa resolución</span>
+            </div>
+          </div>
+          <div class="chart-stack-bar" role="img" aria-label="${stats.openCount} abiertos y ${stats.resolvedCount} resueltos">
+            <div class="chart-stack-seg chart-stack-seg--open" style="width:${openPct}%"></div>
+            <div class="chart-stack-seg chart-stack-seg--resolved" style="width:${resolvedPct}%"></div>
+          </div>
+          <div class="chart-legend">
+            <span><i class="chart-dot chart-dot--open"></i> Abiertos</span>
+            <span><i class="chart-dot chart-dot--resolved"></i> Resueltos</span>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-card-title">Por categoría <small>A/R</small></h3>
+          <div class="chart-compare-list">${categoryRows}</div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-card-title">Por barrio <small>A/R</small></h3>
+          <div class="chart-compare-list">${barrioRows}</div>
+        </div>
+      </div>`;
   }
 
-  function renderResolvedGrid() {
-    const grid = document.getElementById('community-resolved-grid');
-    if (!grid) return;
+  function getBoardReports() {
+    if (activeBoardTab === 'open') {
+      return VeciIA.getReports({ status: 'open' }).filter((r) => r.type !== 'informativo');
+    }
+    if (activeBoardTab === 'resolved') {
+      return VeciIA.getReports({ status: 'resolved' });
+    }
+    return VeciIA.getReports().filter((r) => r.type !== 'informativo' || r.status === 'resolved');
+  }
 
-    const resolved = VeciIA.getResolvedStories();
-    if (!resolved.length) {
-      grid.innerHTML = '<p class="empty-list">Aún no hay casos resueltos en la comunidad.</p>';
+  function renderCommunityBoard() {
+    const list = document.getElementById('community-board-list');
+    const countEl = document.getElementById('community-list-count');
+    if (!list) return;
+
+    const reports = getBoardReports().slice(0, 16);
+
+    if (countEl) {
+      countEl.textContent = reports.length ? `${reports.length} casos` : '';
+    }
+
+    if (!reports.length) {
+      const emptyMsg = activeBoardTab === 'open'
+        ? 'No hay reportes abiertos.'
+        : activeBoardTab === 'resolved'
+          ? 'No hay casos resueltos aún.'
+          : 'No hay reportes para mostrar.';
+      list.innerHTML = `<p class="empty-list community-empty">${emptyMsg}</p>`;
       return;
     }
 
-    grid.innerHTML = resolved.map((story) => {
-      const report = VeciIA.getReportById(story.id) || story;
-      return buildCommunityCard(report);
-    }).join('');
+    list.innerHTML = reports.map(buildCompactRow).join('');
   }
 
   function buildActivityCard(a) {
     const badge = TYPE_LABELS[a.type] || TYPE_LABELS.report;
-    const actionsHtml = a.report ? VeciIA.buildReportActionsHtml(a.report) : '';
+    const actionsHtml = a.report ? VeciIA.buildReportActionsHtml(a.report, 'compact') : '';
 
     return `
       <article class="gallery-card activity-${a.type}" data-type="${a.type}" data-report-id="${a.reportId || ''}">
@@ -364,8 +439,12 @@
     document.getElementById('community-board-tabs')?.addEventListener('click', (e) => {
       const tab = e.target.closest('[data-board-tab]');
       if (!tab) return;
-      document.querySelectorAll('#community-board-tabs .filter-chip').forEach((c) => c.classList.remove('active'));
+      document.querySelectorAll('#community-board-tabs .filter-chip').forEach((c) => {
+        c.classList.remove('active');
+        c.setAttribute('aria-selected', 'false');
+      });
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
       activeBoardTab = tab.dataset.boardTab;
       renderCommunityBoard();
     });
@@ -461,8 +540,8 @@
 
   function refreshAll() {
     renderActivityGallery();
+    renderCommunityCharts();
     renderCommunityBoard();
-    renderResolvedGrid();
     renderLeaderboard();
     renderZoneStats();
   }

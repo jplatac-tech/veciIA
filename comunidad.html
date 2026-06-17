@@ -62,43 +62,38 @@
     </section>
 
     <!-- Reportes y soluciones -->
-    <section class="section section-community-board">
-      <div class="section-inner">
-        <div class="community-board-header" data-reveal>
+    <section class="section section-community-board section-alt">
+      <div class="section-inner community-hub">
+        <div class="community-hub-header" data-reveal>
           <div>
             <span class="section-tag">Soluciones en comunidad</span>
             <h2>Reportes y problemas resueltos</h2>
-            <p class="section-lead">
-              Contacta por WhatsApp a quien publicó el problema o a quien lo resolvió.
-              Si tú publicaste el reporte, puedes marcarlo como resuelto e indicar quién ayudó — se genera una constancia de validación.
+            <p class="section-lead community-hub-lead">
+              Comparativa en tiempo real y contacto directo con quien reportó o resolvió cada caso.
             </p>
           </div>
-          <div class="community-board-tabs" id="community-board-tabs">
-            <button type="button" class="filter-chip active" data-board-tab="open">📍 Abiertos</button>
-            <button type="button" class="filter-chip" data-board-tab="resolved">✅ Resueltos</button>
-          </div>
         </div>
-        <div id="community-board-grid" class="community-board-grid" data-reveal data-delay="100"></div>
+
+        <div id="community-charts" class="community-charts" data-reveal data-delay="80" aria-label="Gráficos comparativos de reportes"></div>
+
+        <div class="community-list-panel" data-reveal data-delay="120">
+          <div class="community-list-toolbar">
+            <div class="community-board-tabs" id="community-board-tabs" role="tablist">
+              <button type="button" class="filter-chip active" data-board-tab="open" role="tab" aria-selected="true">📍 Abiertos</button>
+              <button type="button" class="filter-chip" data-board-tab="resolved" role="tab" aria-selected="false">✅ Resueltos</button>
+              <button type="button" class="filter-chip" data-board-tab="all" role="tab" aria-selected="false">📊 Todos</button>
+            </div>
+            <span class="community-list-count" id="community-list-count"></span>
+          </div>
+          <div id="community-board-list" class="community-compact-list" role="list"></div>
+        </div>
+
         <p class="community-board-hint guest-only" data-reveal data-delay="150">
-          <a href="mapa.html#reportar">Publica un reporte en el mapa</a> (con tu WhatsApp) para que otros vecinos puedan contactarte.
+          <a href="mapa.html#reportar">Publica un reporte en el mapa</a> con tu WhatsApp para que otros vecinos te contacten.
         </p>
         <p class="community-board-hint logged-in-only" data-reveal data-delay="150">
-          Publica reportes en el <a href="mapa.html#reportar">mapa</a> con tu número de WhatsApp. Solo tú puedes confirmar quién resolvió tu problema.
+          Publica en el <a href="mapa.html#reportar">mapa</a>. Solo tú confirmas quién resolvió tu problema y se genera la constancia.
         </p>
-      </div>
-    </section>
-
-    <!-- Casos resueltos (destacados) -->
-    <section class="section section-stories section-alt">
-      <div class="section-inner">
-        <div class="stories-header" data-reveal>
-          <div>
-            <span class="section-tag">Casos resueltos</span>
-            <h2>Problemas que la comunidad ya solucionó</h2>
-            <p class="section-lead">Contacta a quien reportó o a quien ayudó a resolverlo. Cada caso incluye constancia de validación.</p>
-          </div>
-        </div>
-        <div id="community-resolved-grid" class="community-board-grid community-board-grid--resolved" data-reveal data-delay="100"></div>
       </div>
     </section>
 

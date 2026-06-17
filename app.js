@@ -674,14 +674,19 @@
   }
 
   function buildReportContactsHtml(report, variant) {
-    const btnClass = variant === 'popup' ? 'popup-wa-btn' : 'report-wa-btn';
+    const btnClass = variant === 'popup' ? 'popup-wa-btn'
+      : variant === 'compact' ? 'report-chip report-chip--wa'
+      : 'report-wa-btn';
     let html = '';
 
     const authorPhone = getReportContactPhone(report);
     if (authorPhone) {
       const msg = `Hola ${report.userName}, vi tu reporte en VeciIA: "${report.description.slice(0, 100)}" y quiero ayudar.`;
       const wa = whatsAppLink(authorPhone, msg);
-      html += `<a href="${wa}" target="_blank" rel="noopener" class="${btnClass}">💬 Contactar a ${escapeHtml(report.userName)} (reportó)</a>`;
+      const authorLabel = variant === 'compact'
+        ? `💬 ${escapeHtml(report.userName.split(' ')[0])}`
+        : `💬 Contactar a ${escapeHtml(report.userName)} (reportó)`;
+      html += `<a href="${wa}" target="_blank" rel="noopener" class="${btnClass}">${authorLabel}</a>`;
     }
 
     if (report.status === 'resolved' && report.solverName) {
@@ -689,37 +694,90 @@
       if (solverPhone) {
         const msg = `Hola ${report.solverName}, vi que ayudaste a resolver un reporte en VeciIA: "${report.description.slice(0, 80)}". ¡Gracias!`;
         const wa = whatsAppLink(solverPhone, msg);
-        const solverClass = variant === 'list' ? `${btnClass} report-wa-btn--solver` : btnClass;
-        html += `<a href="${wa}" target="_blank" rel="noopener" class="${solverClass}">💬 Contactar a ${escapeHtml(report.solverName)} (resolvió)</a>`;
+        const solverClass = variant === 'compact'
+          ? 'report-chip report-chip--wa report-chip--solver'
+          : variant === 'list' ? `${btnClass} report-wa-btn--solver` : btnClass;
+        const solverLabel = variant === 'compact'
+          ? `✅ ${escapeHtml(report.solverName.split(' ')[0])}`
+          : `💬 Contactar a ${escapeHtml(report.solverName)} (resolvió)`;
+        html += `<a href="${wa}" target="_blank" rel="noopener" class="${solverClass}">${solverLabel}</a>`;
       }
     }
 
     if (!html) {
-      html = '<p class="report-no-contact">Sin WhatsApp registrado para este reporte.</p>';
+      html = variant === 'compact'
+        ? '<span class="report-chip report-chip--muted">Sin WhatsApp</span>'
+        : '<p class="report-no-contact">Sin WhatsApp registrado para este reporte.</p>';
     }
     return html;
   }
 
-  function buildReportActionsHtml(report) {
+  function buildReportActionsHtml(report, variant) {
     const user = getSessionUser();
     const isAuthor = user && report.userId === user.id;
     const isInformativo = report.type === 'informativo';
+    const isCompact = variant === 'compact';
+    const wrapClass = isCompact ? 'report-actions-compact' : 'report-item-actions';
 
-    let html = '<div class="report-item-actions">';
-    html += buildReportContactsHtml(report, 'list');
+    let html = `<div class="${wrapClass}">`;
+    html += buildReportContactsHtml(report, isCompact ? 'compact' : 'list');
 
     if (report.status === 'resolved') {
       if (report.certificateId) {
-        html += `<button type="button" class="report-cert-btn btn-secondary btn-sm" data-cert="${report.certificateId}">Ver constancia</button>`;
+        const certClass = isCompact ? 'report-chip report-chip--cert report-cert-btn' : 'report-cert-btn btn-secondary btn-sm';
+        const certLabel = isCompact ? '📄 Constancia' : 'Ver constancia';
+        html += `<button type="button" class="${certClass}" data-cert="${report.certificateId}">${certLabel}</button>`;
       }
     } else if (!isInformativo && isAuthor) {
-      html += `<button type="button" class="report-resolve-open btn-primary btn-sm" data-id="${report.id}">Marcar resuelto</button>`;
-    } else if (isInformativo) {
+      const resolveClass = isCompact ? 'report-chip report-chip--resolve report-resolve-open' : 'report-resolve-open btn-primary btn-sm';
+      const resolveLabel = isCompact ? '✓ Resolver' : 'Marcar resuelto';
+      html += `<button type="button" class="${resolveClass}" data-id="${report.id}">${resolveLabel}</button>`;
+    } else if (isInformativo && !isCompact) {
       html += '<span class="report-info-badge">ℹ️ Aviso informativo</span>';
     }
 
     html += '</div>';
     return html;
+  }
+
+  function getCommunityCompareStats() {
+    const reports = data.reports.filter((r) => r.type !== 'informativo');
+    const open = reports.filter((r) => r.status === 'open');
+    const resolved = reports.filter((r) => r.status === 'resolved');
+    const total = reports.length || 1;
+
+    const categoryKeys = Object.keys(CATEGORIES).filter((k) => k !== 'informativo' && k !== 'otro');
+    const byCategory = categoryKeys.map((key) => {
+      const cat = CATEGORIES[key];
+      const o = open.filter((r) => r.category === key).length;
+      const res = resolved.filter((r) => r.category === key).length;
+      return { key, label: cat.label, icon: cat.icon, open: o, resolved: res, total: o + res };
+    }).filter((c) => c.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
+
+    const barrioMap = {};
+    reports.forEach((r) => {
+      if (!barrioMap[r.barrio]) barrioMap[r.barrio] = { open: 0, resolved: 0 };
+      if (r.status === 'open') barrioMap[r.barrio].open += 1;
+      else barrioMap[r.barrio].resolved += 1;
+    });
+    const byBarrio = Object.entries(barrioMap)
+      .map(([name, counts]) => ({ name, open: counts.open, resolved: counts.resolved, total: counts.open + counts.resolved }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+
+    const maxCategoryTotal = Math.max(1, ...byCategory.map((c) => c.total));
+    const maxBarrioTotal = Math.max(1, ...byBarrio.map((b) => b.total));
+
+    return {
+      openCount: open.length,
+      resolvedCount: resolved.length,
+      total: reports.length,
+      resolutionRate: Math.round((resolved.length / total) * 100),
+      byCategory,
+      byBarrio,
+      maxCategoryTotal,
+      maxBarrioTotal,
+    };
   }
 
   window.VeciIA = {
@@ -740,6 +798,7 @@
     getStats,
     getHeatPoints,
     getCommunityActivity,
+    getCommunityCompareStats,
     getResolvedStories,
     getTopNeighbors,
     getImpactLevel,
