@@ -216,7 +216,11 @@
       pointsEl.dataset.value = String(points);
     }
     document.getElementById('cuenta-level').textContent = `${level.icon} ${level.name}`;
-    document.getElementById('cuenta-phone').value = user.phone || '';
+
+    const phoneEl = document.getElementById('cuenta-phone');
+    if (phoneEl && document.activeElement !== phoneEl) {
+      phoneEl.value = user.phone || '';
+    }
 
     const hints = document.getElementById('points-hints');
     if (hints && VeciIA.POINTS) {
@@ -236,9 +240,11 @@
 
   document.getElementById('cuenta-profile-form')?.addEventListener('submit', (e) => {
     e.preventDefault();
+    const phoneEl = document.getElementById('cuenta-phone');
     try {
-      VeciIA.updateUserProfile({ phone: document.getElementById('cuenta-phone').value });
-      showToast('✅ Teléfono actualizado');
+      const user = VeciIA.updateUserProfile({ phone: phoneEl?.value || '' });
+      if (phoneEl) phoneEl.value = user.phone || '';
+      showToast(user.phone ? `✅ WhatsApp guardado: ${user.phone}` : '✅ Teléfono eliminado');
       refresh();
     } catch (err) {
       alert(err.message);

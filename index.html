@@ -6,11 +6,12 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="description" content="VeciIA – Reporta problemas de tu barrio en tiempo real. La IA los organiza, prioriza y conecta con quien puede solucionarlos.">
   <title>Inicio – VeciIA</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preload" href="styles.css" as="style">
   <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"></noscript>
 </head>
 <body data-page="index">
   <div class="blob blob-peach" aria-hidden="true"></div>
@@ -51,7 +52,11 @@
                 src="assets/hero-heatmap.png"
                 alt="Mapa de calor en tiempo real de problemas reportados en Cartagena"
                 class="map-preview-img"
+                width="640"
+                height="480"
                 loading="eager"
+                fetchpriority="high"
+                decoding="async"
               >
               <div class="map-notifications" aria-live="polite"></div>
               <span class="map-label">
@@ -148,10 +153,10 @@
   <div id="site-footer"></div>
   <div id="site-auth"></div>
 
-  <script src="layout.js"></script>
-  <script src="app.js"></script>
-  <script src="ui.js"></script>
-  <script src="main.js"></script>
+  <script src="layout.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="ui.js" defer></script>
+  <script src="main.js" defer></script>
   <script>
     if (typeof VeciIA !== 'undefined') {
       VeciIA.on('ready', () => {

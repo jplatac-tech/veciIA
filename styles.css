@@ -45,6 +45,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Render below-the-fold sections lazily */
+main > .section:not(.page-hero),
+main > .stats-section,
+.cta-section,
+.section-alt,
+.section-benefits,
+.section-growth,
+.section-live,
+.section-impact {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 360px;
+}
+
+.hero,
+.page-hero,
+.map-page-header {
+  content-visibility: visible;
+}
+
 img, video, svg, canvas {
   max-width: 100%;
   height: auto;
@@ -2281,8 +2300,8 @@ body[data-page="plataforma"] .page-main .section {
   border-radius: var(--radius);
   padding: 32px;
   box-shadow: var(--card-shadow);
-  transition: transform 0.3s var(--ease-out), box-shadow 0.3s;
-  will-change: transform;
+  overflow: hidden;
+  transition: box-shadow 0.3s var(--ease-out);
 }
 
 .benefit-card:hover {
@@ -2293,11 +2312,12 @@ body[data-page="plataforma"] .page-main .section {
   font-size: 1.25rem;
   display: block;
   margin-bottom: 12px;
-  transition: transform 0.3s var(--ease-spring);
+  line-height: 1;
+  transform-origin: left center;
 }
 
 .benefit-card:hover .benefit-check {
-  transform: scale(1.2);
+  transform: none;
 }
 
 .benefit-card h3 {
@@ -2342,6 +2362,7 @@ body[data-page="plataforma"] .page-main .section {
     box-shadow: none;
     border: 1px solid rgba(0, 0, 0, 0.06);
     background: rgba(255, 255, 255, 0.85);
+    overflow: hidden;
   }
 
   .section-benefits .benefit-card:hover {
@@ -2351,10 +2372,11 @@ body[data-page="plataforma"] .page-main .section {
 
   .section-benefits .benefit-check {
     grid-row: 1 / span 2;
-    align-self: start;
+    align-self: center;
     font-size: 0.95rem;
     margin-bottom: 0;
-    margin-top: 1px;
+    margin-top: 0;
+    line-height: 1;
   }
 
   .section-benefits .benefit-card h3 {
@@ -4392,8 +4414,16 @@ body.logged-in #cuenta-guest {
   padding: 10px;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   font-family: var(--font);
+}
+
+.cuenta-profile-form .form-hint {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  line-height: 1.35;
 }
 
 .cuenta-block {
@@ -4930,6 +4960,12 @@ body[data-page="comunidad"] .benefits-grid {
 body[data-page="comunidad"] .benefit-card {
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(0, 0, 0, 0.04);
+  transform: none !important;
+  overflow: hidden;
+}
+
+body[data-page="comunidad"] .benefit-card:hover .benefit-check {
+  transform: none;
 }
 
 /* ── Comunidad: galería en vivo ── */
@@ -5249,11 +5285,19 @@ body[data-page="comunidad"] .benefit-card {
   border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
+.stats-donut-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
 .stats-donut {
   --open: 50;
   --resolved: 50;
-  width: 92px;
-  height: 92px;
+  width: 84px;
+  height: 84px;
   flex-shrink: 0;
   border-radius: 50%;
   background: conic-gradient(
@@ -5267,31 +5311,38 @@ body[data-page="comunidad"] .benefit-card {
 }
 
 .stats-donut-inner {
-  width: 64px;
-  height: 64px;
+  width: 62px;
+  height: 62px;
   background: white;
   border-radius: 50%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .stats-donut-inner strong {
-  font-size: 1.05rem;
+  font-size: 0.82rem;
   font-weight: 800;
   color: #059669;
   line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-donut-caption {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  text-align: center;
+  max-width: 84px;
 }
 
 .stats-donut-inner span {
-  font-size: 0.56rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-top: 3px;
+  display: none;
 }
 
 .stats-overview-legend {
@@ -5470,9 +5521,13 @@ body[data-page="comunidad"] .benefit-card {
     margin-bottom: 12px;
   }
 
+  .stats-donut-wrap {
+    gap: 3px;
+  }
+
   .stats-donut {
-    width: 80px;
-    height: 80px;
+    width: 76px;
+    height: 76px;
   }
 
   .stats-donut-inner {
@@ -5481,7 +5536,12 @@ body[data-page="comunidad"] .benefit-card {
   }
 
   .stats-donut-inner strong {
-    font-size: 0.95rem;
+    font-size: 0.76rem;
+  }
+
+  .stats-donut-caption {
+    font-size: 0.52rem;
+    max-width: 76px;
   }
 
   .stats-legend-item {

@@ -160,28 +160,29 @@
   }
 
   function migrateData(data) {
-    if (!data.certificates) data.certificates = [];
-    if (!data.redemptions) data.redemptions = [];
+    let dirty = false;
+    if (!data.certificates) { data.certificates = []; dirty = true; }
+    if (!data.redemptions) { data.redemptions = []; dirty = true; }
     data.reports.forEach((r) => {
-      if (!r.type) r.type = r.category === 'informativo' ? 'informativo' : 'problema';
+      if (!r.type) { r.type = r.category === 'informativo' ? 'informativo' : 'problema'; dirty = true; }
       if (!r.phone && r.id && String(r.id).startsWith('seed-')) {
         const i = parseInt(String(r.id).replace('seed-', ''), 10);
-        if (!Number.isNaN(i)) r.phone = seedDemoPhone(i);
+        if (!Number.isNaN(i)) { r.phone = seedDemoPhone(i); dirty = true; }
       }
-      if (!r.phone) r.phone = '';
+      if (r.phone == null) { r.phone = ''; dirty = true; }
       if (r.status === 'resolved' && r.id && String(r.id).startsWith('seed-')) {
         const i = parseInt(String(r.id).replace('seed-', ''), 10);
         if (!Number.isNaN(i)) {
           const solver = seedSolverForReport(i);
-          if (!r.solverName) r.solverName = solver.name;
-          if (!r.solverPhone) r.solverPhone = solver.phone;
+          if (!r.solverName) { r.solverName = solver.name; dirty = true; }
+          if (!r.solverPhone) { r.solverPhone = solver.phone; dirty = true; }
         }
       }
     });
     data.users.forEach((u) => {
-      if (!u.phone) u.phone = '';
+      if (u.phone === undefined || u.phone === null) { u.phone = ''; dirty = true; }
     });
-    saveData(data);
+    if (dirty) saveData(data);
   }
 
   function buildSeedReports() {
@@ -214,9 +215,11 @@
     const seedCount = data.reports.filter((r) => r.id.startsWith('seed-') || r.id.startsWith('extra-')).length;
     if (seedCount >= SEED_REPORTS.length) return;
     const existingIds = new Set(data.reports.map((r) => r.id));
+    let added = false;
     SEED_REPORTS.forEach((r, i) => {
       const id = 'seed-' + i;
       if (!existingIds.has(id)) {
+        added = true;
         const isResolved = i % 5 === 0;
         const solver = isResolved ? seedSolverForReport(i) : null;
         data.reports.push({
@@ -240,8 +243,10 @@
         });
       }
     });
-    regroupReports(data.reports);
-    saveData(data);
+    if (added) {
+      regroupReports(data.reports);
+      saveData(data);
+    }
   }
 
   function detectCategory(text) {
@@ -313,7 +318,25 @@
 
   function normalizePhone(phone) {
     if (!phone) return '';
-    return phone.replace(/\D/g, '').replace(/^57/, '').slice(-10);
+    let digits = String(phone).replace(/\D/g, '');
+    if (digits.startsWith('57') && digits.length > 10) {
+      digits = digits.slice(2);
+    }
+    if (digits.length > 10) {
+      digits = digits.slice(-10);
+    }
+    return digits;
+  }
+
+  function validatePhone(phone) {
+    const normalized = normalizePhone(phone);
+    if (!normalized) {
+      return { ok: false, message: 'Ingresa un número de WhatsApp de 10 dígitos.' };
+    }
+    if (!/^3\d{9}$/.test(normalized)) {
+      return { ok: false, message: 'Usa un celular colombiano válido: 10 dígitos empezando en 3 (ej. 3207149637).' };
+    }
+    return { ok: true, value: normalized };
   }
 
   function whatsAppLink(phone, message) {
@@ -355,13 +378,19 @@
     if (data.users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
       throw new Error('Este correo ya está registrado.');
     }
+    let userPhone = '';
+    if (phone && String(phone).trim()) {
+      const check = validatePhone(phone);
+      if (!check.ok) throw new Error(check.message);
+      userPhone = check.value;
+    }
     const user = {
       id: uid(),
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password,
       barrio: barrio.trim(),
-      phone: normalizePhone(phone || ''),
+      phone: userPhone,
       createdAt: Date.now(),
     };
     data.users.push(user);
@@ -573,7 +602,16 @@
   function updateUserProfile({ phone, barrio }) {
     const user = getSessionUser();
     if (!user) throw new Error('Debes iniciar sesión.');
-    if (phone !== undefined) user.phone = normalizePhone(phone);
+    if (phone !== undefined) {
+      const trimmed = String(phone).trim();
+      if (!trimmed) {
+        user.phone = '';
+      } else {
+        const check = validatePhone(trimmed);
+        if (!check.ok) throw new Error(check.message);
+        user.phone = check.value;
+      }
+    }
     if (barrio) user.barrio = barrio.trim();
     saveData(data);
     emit('auth', { user: getSessionUser() });
@@ -931,5 +969,7 @@
     CARTAGENA_ZOOM: 13,
   };
 
-  emit('ready', { user: getSessionUser(), reports: data.reports });
+  queueMicrotask(() => {
+    emit('ready', { user: getSessionUser(), reports: data.reports });
+  });
 })();

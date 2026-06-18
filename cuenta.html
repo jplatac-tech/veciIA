@@ -6,11 +6,12 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="description" content="Tu cuenta VeciIA: puntos de impacto, canje en aliados y constancias de problemas resueltos.">
   <title>Mi cuenta – VeciIA</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preload" href="styles.css" as="style">
   <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"></noscript>
 </head>
 <body data-page="cuenta">
   <div id="site-header"></div>
@@ -47,7 +48,8 @@
           </div>
           <form id="cuenta-profile-form" class="cuenta-profile-form">
             <label for="cuenta-phone">WhatsApp de contacto</label>
-            <input type="tel" id="cuenta-phone" placeholder="Ej: 3207149637" maxlength="15">
+            <input type="tel" id="cuenta-phone" name="cuenta-phone" placeholder="Ej: 3207149637" maxlength="15" inputmode="numeric" autocomplete="tel-national">
+            <small class="form-hint">10 dígitos, sin +57. Ejemplo: 3207149637</small>
             <button type="submit" class="btn-secondary btn-sm btn-block">Guardar teléfono</button>
           </form>
           <a href="mapa.html#reportar" class="btn-primary btn-block js-report">Reportar en el mapa</a>
@@ -93,10 +95,10 @@
   <div id="site-footer"></div>
   <div id="site-auth"></div>
 
-  <script src="layout.js"></script>
-  <script src="app.js"></script>
-  <script src="ui.js"></script>
-  <script src="cuenta.js"></script>
-  <script src="main.js"></script>
+  <script src="layout.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="ui.js" defer></script>
+  <script src="cuenta.js" defer></script>
+  <script src="main.js" defer></script>
 </body>
 </html>

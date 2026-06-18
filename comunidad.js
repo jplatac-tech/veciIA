@@ -214,12 +214,14 @@
     el.innerHTML = `
       <div class="stats-panel">
         <div class="stats-overview">
-          <div class="stats-donut" style="--open:${openPct};--resolved:${resolvedPct}"
-            role="img" aria-label="${stats.openCount} abiertos y ${stats.resolvedCount} resueltos">
-            <div class="stats-donut-inner">
-              <strong>${stats.resolutionRate}%</strong>
-              <span>resueltos</span>
+          <div class="stats-donut-wrap">
+            <div class="stats-donut" style="--open:${openPct};--resolved:${resolvedPct}"
+              role="img" aria-label="${stats.resolutionRate}% resueltos: ${stats.openCount} abiertos y ${stats.resolvedCount} resueltos">
+              <div class="stats-donut-inner">
+                <strong>${stats.resolutionRate}%</strong>
+              </div>
             </div>
+            <span class="stats-donut-caption">Resueltos</span>
           </div>
           <div class="stats-overview-legend">
             <div class="stats-legend-item stats-legend-item--open">
@@ -658,9 +660,18 @@
   initActivityGallery();
   initReportActions();
   initDashboardTabs();
-  refreshAll();
 
-  VeciIA.on('ready', refreshAll);
-  VeciIA.on('reports', refreshAll);
-  VeciIA.on('auth', refreshAll);
+  function scheduleRefreshAll() {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => refreshAll(), { timeout: 1200 });
+    } else {
+      setTimeout(refreshAll, 0);
+    }
+  }
+
+  scheduleRefreshAll();
+
+  VeciIA.on('ready', scheduleRefreshAll);
+  VeciIA.on('reports', scheduleRefreshAll);
+  VeciIA.on('auth', scheduleRefreshAll);
 })();

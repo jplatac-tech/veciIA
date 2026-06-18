@@ -80,11 +80,15 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bootMap);
+    document.addEventListener('DOMContentLoaded', scheduleBootMap, { once: true });
   } else {
-    bootMap();
+    scheduleBootMap();
   }
-  window.addEventListener('load', bootMap);
+
+  function scheduleBootMap() {
+    if (map) return;
+    requestAnimationFrame(() => requestAnimationFrame(bootMap));
+  }
 
   function onMapClick(e) {
     if (!document.body.classList.contains('logged-in')) return;

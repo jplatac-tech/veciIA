@@ -6,11 +6,12 @@
   <meta name="theme-color" content="#ffffff">
   <meta name="description" content="Índice de Impacto Social, beneficios para Colombia y el potencial de crecimiento de VeciIA.">
   <title>Comunidad – VeciIA</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preload" href="styles.css" as="style">
   <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"></noscript>
 </head>
 <body data-page="comunidad">
   <div class="blob blob-mint" aria-hidden="true"></div>
@@ -169,22 +170,22 @@
         <span class="section-tag" data-reveal>Beneficios para Colombia</span>
         <h2 data-reveal data-delay="50">Una herramienta pensada para nuestras comunidades</h2>
         <div class="benefits-grid">
-          <div class="benefit-card" data-reveal data-delay="0" data-tilt>
+          <div class="benefit-card" data-reveal data-delay="0">
             <span class="benefit-check">✅</span>
             <h3>Comunidades más organizadas</h3>
             <p>Toda la información en un solo lugar, accesible para todos.</p>
           </div>
-          <div class="benefit-card" data-reveal data-delay="100" data-tilt>
+          <div class="benefit-card" data-reveal data-delay="100">
             <span class="benefit-check">✅</span>
             <h3>Soluciones más rápidas</h3>
             <p>Menos tiempo perdido buscando a quién contactar.</p>
           </div>
-          <div class="benefit-card" data-reveal data-delay="200" data-tilt>
+          <div class="benefit-card" data-reveal data-delay="200">
             <span class="benefit-check">✅</span>
             <h3>Menos dependencia de WhatsApp</h3>
             <p>Adiós a los mensajes que se pierden en grupos caóticos.</p>
           </div>
-          <div class="benefit-card" data-reveal data-delay="300" data-tilt>
+          <div class="benefit-card" data-reveal data-delay="300">
             <span class="benefit-check">✅</span>
             <h3>Mayor participación ciudadana</h3>
             <p>Incentivos que motivan a más vecinos a involucrarse.</p>
@@ -257,10 +258,10 @@
     </div>
   </div>
 
-  <script src="layout.js"></script>
-  <script src="app.js"></script>
-  <script src="comunidad.js"></script>
-  <script src="ui.js"></script>
-  <script src="main.js"></script>
+  <script src="layout.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="comunidad.js" defer></script>
+  <script src="ui.js" defer></script>
+  <script src="main.js" defer></script>
 </body>
 </html>

@@ -28,8 +28,8 @@
   }
 
   const LOGO_MARK = logoSvg(32, 'h');
-
   const currentPage = document.body.dataset.page || 'index';
+  let overlaysReady = false;
 
   function renderHeader() {
     const el = document.getElementById('site-header');
@@ -105,11 +105,23 @@
       </footer>`;
   }
 
-  function renderAuth() {
+  function renderAuthShell() {
     const el = document.getElementById('site-auth');
     if (!el) return;
 
     el.innerHTML = `
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div id="points-toast-stack" class="points-toast-stack" aria-live="polite" aria-atomic="false"></div>`;
+  }
+
+  function ensureOverlays() {
+    if (overlaysReady) return;
+    overlaysReady = true;
+
+    const el = document.getElementById('site-auth');
+    if (!el) return;
+
+    el.insertAdjacentHTML('beforeend', `
       <div class="auth-modal" id="auth-modal" role="dialog" aria-labelledby="auth-title" aria-hidden="true">
         <div class="modal-content auth-content">
           <button class="modal-close auth-close" aria-label="Cerrar">&times;</button>
@@ -158,8 +170,6 @@
           </div>
         </div>
       </div>
-      <div id="toast" class="toast" role="status" aria-live="polite"></div>
-      <div id="points-toast-stack" class="points-toast-stack" aria-live="polite" aria-atomic="false"></div>
       <div id="redeem-celebration" class="redeem-celebration" role="dialog" aria-labelledby="redeem-title" aria-hidden="true">
         <div class="redeem-celebration-backdrop"></div>
         <div class="redeem-celebration-card">
@@ -176,12 +186,12 @@
           <p class="redeem-balance" id="redeem-balance"></p>
           <button type="button" class="btn-primary btn-block" id="redeem-celebration-close">¡Genial!</button>
         </div>
-      </div>`;
+      </div>`);
   }
 
   renderHeader();
   renderFooter();
-  renderAuth();
+  renderAuthShell();
 
   const fab = document.createElement('a');
   fab.href = 'mapa.html#reportar';
@@ -190,4 +200,12 @@
   fab.setAttribute('aria-label', 'Reportar un problema');
   fab.innerHTML = '<span class="fab-report-icon" aria-hidden="true">📍</span><span class="fab-report-label">Reportar</span>';
   document.body.appendChild(fab);
+
+  window.VeciIALayout = { ensureOverlays };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => ensureOverlays(), { timeout: 2500 });
+  } else {
+    setTimeout(ensureOverlays, 1200);
+  }
 })();

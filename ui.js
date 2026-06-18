@@ -84,6 +84,7 @@
   }
 
   function showRedeemCelebration({ offer, redemption, total }) {
+    window.VeciIALayout?.ensureOverlays?.();
     const modal = document.getElementById('redeem-celebration');
     if (!modal || !offer || !redemption) return;
 
@@ -173,6 +174,7 @@
   }
 
   function openAuth(mode) {
+    window.VeciIALayout?.ensureOverlays?.();
     authMode = mode || 'login';
     getAuthEls();
     if (!authModal) return;
@@ -350,10 +352,20 @@
   });
 
   function init() {
-    bindAuthEvents();
     bindUserEvents();
     bindReportButton();
-    bindPointsEvents();
+
+    const bindOverlays = () => {
+      window.VeciIALayout?.ensureOverlays?.();
+      bindAuthEvents();
+      bindPointsEvents();
+    };
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(bindOverlays, { timeout: 900 });
+    } else {
+      setTimeout(bindOverlays, 40);
+    }
 
     if (typeof VeciIA !== 'undefined') {
       updateUserUI(VeciIA.getSessionUser());
