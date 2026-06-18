@@ -70,26 +70,30 @@
     <section class="stats-section">
       <h2 data-reveal>La red de solución de problemas comunitarios en tiempo real</h2>
       <div class="stats-grid">
-        <div class="stat-card" data-reveal data-delay="0" data-tilt>
+        <div class="stat-card stat-card--info" data-reveal data-delay="0">
           <span class="stat-icon" aria-hidden="true">👥</span>
           <span class="stat-number" data-stat="users">847+</span>
           <span class="stat-label">Vecinos activos</span>
         </div>
-        <div class="stat-card" data-reveal data-delay="100" data-tilt>
+        <div class="stat-card stat-card--info" data-reveal data-delay="100">
           <span class="stat-icon" aria-hidden="true">📍</span>
           <span class="stat-number" data-stat="reports">10</span>
           <span class="stat-label">Problemas reportados</span>
         </div>
-        <div class="stat-card" data-reveal data-delay="200" data-tilt>
+        <div class="stat-card stat-card--info" data-reveal data-delay="200">
           <span class="stat-icon" aria-hidden="true">✅</span>
           <span class="stat-number" data-stat="resolved">2</span>
           <span class="stat-label">Soluciones registradas</span>
         </div>
-        <div class="stat-card" data-reveal data-delay="300" data-tilt>
+        <div class="stat-card stat-card--info" data-reveal data-delay="300">
           <span class="stat-icon" aria-hidden="true">🏛️</span>
           <span class="stat-number" data-stat="entities">12+</span>
           <span class="stat-label">Entidades conectadas</span>
         </div>
+      </div>
+      <div id="connected-entities-panel" class="connected-entities-panel" hidden>
+        <p class="connected-entities-lead">Aliados conectados en la red comunitaria</p>
+        <div id="connected-entities-list" class="connected-entities-list" role="list"></div>
       </div>
     </section>
 
@@ -156,7 +160,9 @@
         document.querySelector('[data-stat="reports"]').textContent = s.reports.toLocaleString('es-CO');
         document.querySelector('[data-stat="resolved"]').textContent = s.resolved.toLocaleString('es-CO');
         document.querySelector('[data-stat="entities"]').textContent = s.entities + '+';
+        VeciIAUI?.renderConnectedEntities?.(VeciIA.getSessionUser());
       });
+      VeciIA.on('auth', ({ user }) => VeciIAUI?.renderConnectedEntities?.(user));
     }
   </script>
 </body>

@@ -158,7 +158,25 @@
           </div>
         </div>
       </div>
-      <div id="toast" class="toast" role="status" aria-live="polite"></div>`;
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div id="points-toast-stack" class="points-toast-stack" aria-live="polite" aria-atomic="false"></div>
+      <div id="redeem-celebration" class="redeem-celebration" role="dialog" aria-labelledby="redeem-title" aria-hidden="true">
+        <div class="redeem-celebration-backdrop"></div>
+        <div class="redeem-celebration-card">
+          <div class="redeem-confetti" id="redeem-confetti" aria-hidden="true"></div>
+          <div class="redeem-prize-ring" aria-hidden="true"></div>
+          <span class="redeem-prize-icon" id="redeem-prize-icon"></span>
+          <h3 id="redeem-title">¡Canje exitoso!</h3>
+          <p class="redeem-prize-title" id="redeem-prize-title"></p>
+          <div class="redeem-code-wrap">
+            <small>Tu código de canje</small>
+            <code id="redeem-prize-code"></code>
+          </div>
+          <p class="redeem-spent" id="redeem-spent"></p>
+          <p class="redeem-balance" id="redeem-balance"></p>
+          <button type="button" class="btn-primary btn-block" id="redeem-celebration-close">¡Genial!</button>
+        </div>
+      </div>`;
   }
 
   renderHeader();

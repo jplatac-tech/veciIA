@@ -9,6 +9,157 @@
     setTimeout(() => toast.classList.remove('show'), 3500);
   }
 
+  /* ── Points UI ── */
+  const CONFETTI_COLORS = ['#2ecc71', '#ff5a43', '#f1c40f', '#3498db', '#9b59b6', '#e67e22'];
+
+  function animateCounter(el, from, to, duration = 600) {
+    if (!el || from === to) {
+      if (el) {
+        el.textContent = (to ?? 0).toLocaleString('es-CO');
+        el.dataset.value = String(to ?? 0);
+      }
+      return;
+    }
+    const start = performance.now();
+    const diff = to - from;
+    function tick(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = Math.round(from + diff * eased);
+      el.textContent = val.toLocaleString('es-CO');
+      if (t < 1) requestAnimationFrame(tick);
+      else el.dataset.value = String(to);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function pulsePointsElements() {
+    document.querySelectorAll('#user-impact, #cuenta-points, .cuenta-points-value').forEach((el) => {
+      el.classList.remove('points-pulse');
+      void el.offsetWidth;
+      el.classList.add('points-pulse');
+    });
+    document.querySelector('.cuenta-points-box')?.classList.add('points-box-glow');
+    setTimeout(() => document.querySelector('.cuenta-points-box')?.classList.remove('points-box-glow'), 900);
+  }
+
+  function showPointsToast({ type, amount, reason, total }) {
+    const stack = document.getElementById('points-toast-stack');
+    if (!stack) return;
+
+    const isEarn = type === 'earn';
+    const el = document.createElement('div');
+    el.className = `points-toast points-toast--${type}`;
+    el.innerHTML = `
+      <span class="points-toast-badge" aria-hidden="true">${isEarn ? '⭐' : '🎁'}</span>
+      <div class="points-toast-body">
+        <strong class="points-toast-amount">${isEarn ? '+' : '−'}${amount} pts</strong>
+        <span class="points-toast-reason">${reason}</span>
+        <small class="points-toast-total">Saldo: ${total.toLocaleString('es-CO')} pts</small>
+      </div>
+      <div class="points-toast-bar" aria-hidden="true"></div>`;
+
+    stack.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+
+    setTimeout(() => {
+      el.classList.remove('show');
+      setTimeout(() => el.remove(), 450);
+    }, 4800);
+  }
+
+  function spawnConfetti(container) {
+    if (!container) return;
+    container.innerHTML = '';
+    for (let i = 0; i < 36; i++) {
+      const p = document.createElement('span');
+      p.className = 'confetti-piece';
+      p.style.setProperty('--x', `${10 + Math.random() * 80}%`);
+      p.style.setProperty('--delay', `${Math.random() * 0.45}s`);
+      p.style.setProperty('--dur', `${1.2 + Math.random() * 0.8}s`);
+      p.style.setProperty('--color', CONFETTI_COLORS[i % CONFETTI_COLORS.length]);
+      p.style.setProperty('--rot', `${Math.random() * 720 - 360}deg`);
+      container.appendChild(p);
+    }
+  }
+
+  function showRedeemCelebration({ offer, redemption, total }) {
+    const modal = document.getElementById('redeem-celebration');
+    if (!modal || !offer || !redemption) return;
+
+    document.getElementById('redeem-prize-icon').textContent = offer.icon || '🎁';
+    document.getElementById('redeem-prize-title').textContent = offer.title;
+    document.getElementById('redeem-prize-code').textContent = redemption.code;
+    document.getElementById('redeem-spent').textContent = `Canjeaste ${offer.cost.toLocaleString('es-CO')} puntos en ${offer.sponsor}`;
+    document.getElementById('redeem-balance').textContent = `Te quedan ${total.toLocaleString('es-CO')} pts disponibles`;
+
+    spawnConfetti(document.getElementById('redeem-confetti'));
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('redeem-open');
+  }
+
+  function closeRedeemCelebration() {
+    const modal = document.getElementById('redeem-celebration');
+    modal?.classList.remove('open');
+    modal?.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('redeem-open');
+  }
+
+  function handlePointsEvent(payload) {
+    showPointsToast(payload);
+    pulsePointsElements();
+
+    document.querySelectorAll('#user-impact, #cuenta-points, .cuenta-points-value').forEach((el) => {
+      const prev = parseInt(el.dataset.value || el.textContent.replace(/\D/g, ''), 10) || 0;
+      animateCounter(el, prev, payload.total);
+    });
+
+    if (payload.type === 'spend' && payload.redemption && payload.offer) {
+      setTimeout(() => showRedeemCelebration(payload), 350);
+    }
+  }
+
+  function renderConnectedEntities(user) {
+    const panel = document.getElementById('connected-entities-panel');
+    const list = document.getElementById('connected-entities-list');
+    if (!panel || !list || typeof VeciIA === 'undefined') return;
+
+    if (!user) {
+      panel.hidden = true;
+      list.innerHTML = '';
+      return;
+    }
+
+    const entities = VeciIA.CONNECTED_ENTITIES || [];
+    list.innerHTML = entities.map((e) => `
+      <div class="entity-chip" role="listitem">
+        <span class="entity-chip-icon" aria-hidden="true">${e.icon}</span>
+        <div class="entity-chip-body">
+          <strong>${e.name}</strong>
+          <span>${e.type} · ${e.barrio}</span>
+        </div>
+        <span class="entity-chip-status" aria-label="Conectado">● Conectado</span>
+      </div>
+    `).join('');
+
+    panel.hidden = false;
+    requestAnimationFrame(() => panel.classList.add('visible'));
+  }
+
+  function bindPointsEvents() {
+    document.getElementById('redeem-celebration-close')?.addEventListener('click', closeRedeemCelebration);
+    document.querySelector('.redeem-celebration-backdrop')?.addEventListener('click', closeRedeemCelebration);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeRedeemCelebration();
+    });
+
+    if (typeof VeciIA !== 'undefined') {
+      VeciIA.on('points', handlePointsEvent);
+    }
+  }
+
   /* ── Auth UI ── */
   let authModal, authForm, authTitle, authSwitch, authError;
   let authMode = 'login';
@@ -128,14 +279,21 @@
       const reports = VeciIA.getReports();
       const score = VeciIA.getUserPoints(user);
       const level = VeciIA.getImpactLevel(VeciIA.calcImpact(user, reports));
-      document.getElementById('user-impact') && (document.getElementById('user-impact').textContent = score);
+      const impactEl = document.getElementById('user-impact');
+      if (impactEl) {
+        impactEl.dataset.value = String(score);
+        impactEl.textContent = score.toLocaleString('es-CO');
+      }
       document.getElementById('user-level') && (document.getElementById('user-level').textContent = `${level.icon} ${level.name}`);
       document.querySelectorAll('.impact-score').forEach((el) => { el.textContent = score; });
+
+      renderConnectedEntities(user);
 
       const phoneInput = document.getElementById('report-phone');
       if (phoneInput && user.phone && !phoneInput.value) phoneInput.value = user.phone;
     } else {
       if (userMenu) userMenu.style.display = 'none';
+      renderConnectedEntities(null);
     }
   }
 
@@ -195,6 +353,7 @@
     bindAuthEvents();
     bindUserEvents();
     bindReportButton();
+    bindPointsEvents();
 
     if (typeof VeciIA !== 'undefined') {
       updateUserUI(VeciIA.getSessionUser());
@@ -255,5 +414,12 @@
   }
 
   init();
-  window.VeciIAUI = { showToast, openAuth };
+  window.VeciIAUI = {
+    showToast,
+    openAuth,
+    showPointsToast,
+    showRedeemCelebration,
+    animateCounter,
+    renderConnectedEntities,
+  };
 })();

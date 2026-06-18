@@ -30,6 +30,22 @@
     { name: 'Miguel A.', phone: '573201234505' },
   ];
 
+  const POINTS = {
+    reportProblema: 10,
+    reportInformativo: 5,
+    reportResolved: 25,
+    helpedResolve: 30,
+  };
+
+  const CONNECTED_ENTITIES = [
+    { name: 'Éxito Caribe', icon: '🛒', type: 'Supermercado', barrio: 'Centro' },
+    { name: 'Farmatodo', icon: '💊', type: 'Farmacia', barrio: 'Bocagrande' },
+    { name: 'D1 Getsemaní', icon: '🏪', type: 'Tienda', barrio: 'Getsemaní' },
+    { name: 'Transcaribe', icon: '🚌', type: 'Movilidad', barrio: 'Cartagena' },
+    { name: 'Alcaldía Distrital', icon: '🏛️', type: 'Gobierno', barrio: 'Centro' },
+    { name: 'Café del Barrio', icon: '☕', type: 'Comercio', barrio: 'Getsemaní' },
+  ];
+
   const SPONSOR_OFFERS = [
     { id: 'exito-10k', sponsor: 'Éxito', icon: '🛒', title: '$10.000 en mercado', cost: 100, desc: 'En compras superiores a $50.000. Válido 30 días.' },
     { id: 'd1-5pct', sponsor: 'D1', icon: '🏪', title: '5% de descuento', cost: 80, desc: 'En productos de aseo y hogar.' },
@@ -409,8 +425,15 @@
     data.reports.unshift(report);
     if (reportType === 'problema') regroupReports(data.reports);
     saveData(data);
+    const earned = reportType === 'informativo' ? POINTS.reportInformativo : POINTS.reportProblema;
     emit('reports', { reports: data.reports, newReport: report });
     emit('auth', { user: getSessionUser() });
+    emit('points', {
+      type: 'earn',
+      amount: earned,
+      reason: reportType === 'informativo' ? 'Aviso publicado' : 'Reporte publicado',
+      total: getUserPoints(getSessionUser()),
+    });
     return report;
   }
 
@@ -453,6 +476,12 @@
     saveData(data);
     emit('reports', { reports: data.reports, certificate });
     emit('auth', { user: getSessionUser() });
+    emit('points', {
+      type: 'earn',
+      amount: POINTS.reportResolved,
+      reason: 'Problema marcado como resuelto',
+      total: getUserPoints(user),
+    });
     return { report, certificate };
   }
 
@@ -520,7 +549,16 @@
     if (!data.redemptions) data.redemptions = [];
     data.redemptions.push(redemption);
     saveData(data);
+    const total = getUserPoints(user);
     emit('auth', { user: getSessionUser() });
+    emit('points', {
+      type: 'spend',
+      amount: offer.cost,
+      reason: `Canje: ${offer.title}`,
+      total,
+      redemption,
+      offer,
+    });
     return { redemption, offer };
   }
 
@@ -848,6 +886,8 @@
     CATEGORIES,
     REPORT_TYPES,
     SPONSOR_OFFERS,
+    CONNECTED_ENTITIES,
+    POINTS,
     URGENCY_WEIGHT,
     on,
     register,

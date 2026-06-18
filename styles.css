@@ -1198,6 +1198,36 @@ body[data-page="mapa"] .leaflet-container {
   opacity: 0.2;
 }
 
+.stat-card--info {
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
+}
+
+.stat-card--info:hover {
+  transform: none;
+  box-shadow: var(--card-shadow);
+}
+
+.stat-card--info::before {
+  transform: scaleX(1);
+  opacity: 0.85;
+}
+
+.stat-card--info:hover::before {
+  transform: scaleX(1);
+}
+
+.stat-card--info .stat-icon {
+  opacity: 0.15;
+  transform: none;
+}
+
+.stat-card--info:hover .stat-icon {
+  transform: none;
+  opacity: 0.15;
+}
+
 .stat-number {
   display: block;
   font-size: clamp(1.75rem, 3vw, 2rem);
@@ -4308,6 +4338,31 @@ body.logged-in #cuenta-guest {
   text-align: center;
 }
 
+.points-hints {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.points-hints li {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.points-hints li span {
+  font-weight: 700;
+  color: var(--green-dark);
+  min-width: 36px;
+}
+
 .cuenta-points-label {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -4372,6 +4427,28 @@ body.logged-in #cuenta-guest {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s, border-color 0.3s;
+}
+
+.offer-card--ready {
+  border-color: rgba(46, 204, 113, 0.35);
+  background: linear-gradient(180deg, rgba(46, 204, 113, 0.06) 0%, white 40%);
+}
+
+.offer-card--ready:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(46, 204, 113, 0.12);
+}
+
+.offer-card--locked {
+  opacity: 0.92;
+  background: #fafafa;
+}
+
+.offer-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .offer-icon {
@@ -4407,6 +4484,52 @@ body.logged-in #cuenta-guest {
   font-weight: 700;
   color: var(--coral);
   font-size: 0.9rem;
+}
+
+.offer-progress-wrap {
+  margin: 8px 0 4px;
+}
+
+.offer-progress {
+  height: 6px;
+  background: #eee;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.offer-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), #27ae60);
+  border-radius: 99px;
+  transition: width 0.6s var(--ease-out);
+}
+
+.offer-card--locked .offer-progress-fill {
+  background: linear-gradient(90deg, #bdc3c7, #95a5a6);
+}
+
+.offer-progress-text {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.offer-locked {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.offer-redeem-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.offer-redeem-btn.is-redeeming {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .certificates-list,
@@ -6773,5 +6896,387 @@ body[data-page="comunidad"] .benefit-card {
 
   .toast {
     bottom: max(24px, var(--safe-bottom));
+  }
+}
+
+/* ── Points toast stack ── */
+.points-toast-stack {
+  position: fixed;
+  top: max(88px, calc(72px + env(safe-area-inset-top, 0px)));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  z-index: 350;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(320px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.points-toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.45s var(--ease-spring), opacity 0.35s;
+  overflow: hidden;
+}
+
+.points-toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.points-toast--earn {
+  border-left: 4px solid var(--green);
+}
+
+.points-toast--spend {
+  border-left: 4px solid var(--coral);
+}
+
+.points-toast-badge {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  animation: points-badge-pop 0.5s var(--ease-spring) 0.15s both;
+}
+
+.points-toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.points-toast-amount {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--green-dark);
+}
+
+.points-toast--spend .points-toast-amount {
+  color: var(--coral);
+}
+
+.points-toast-reason {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.points-toast-total {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.points-toast-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, var(--green), var(--coral));
+  transform-origin: left;
+  animation: points-bar-shrink 4.8s linear forwards;
+}
+
+.points-toast--spend .points-toast-bar {
+  background: linear-gradient(90deg, var(--coral), #f39c12);
+}
+
+@keyframes points-badge-pop {
+  from { transform: scale(0.4) rotate(-20deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes points-bar-shrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+.points-pulse {
+  animation: points-number-pulse 0.7s var(--ease-spring);
+}
+
+.points-box-glow {
+  animation: points-box-glow 0.9s ease;
+}
+
+@keyframes points-number-pulse {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.12); color: var(--green); }
+}
+
+@keyframes points-box-glow {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.25); }
+}
+
+/* ── Redeem celebration ── */
+.redeem-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s, visibility 0.35s;
+}
+
+.redeem-celebration.open {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+}
+
+.redeem-celebration-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.redeem-celebration-card {
+  position: relative;
+  width: min(400px, 100%);
+  background: white;
+  border-radius: 24px;
+  padding: 32px 24px 24px;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+  transform: scale(0.85) translateY(20px);
+  transition: transform 0.45s var(--ease-spring);
+  overflow: hidden;
+}
+
+.redeem-celebration.open .redeem-celebration-card {
+  transform: scale(1) translateY(0);
+}
+
+.redeem-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -8px;
+  left: var(--x);
+  width: 8px;
+  height: 12px;
+  background: var(--color);
+  border-radius: 2px;
+  animation: confetti-fall var(--dur) ease-in var(--delay) forwards;
+  transform: rotate(var(--rot));
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(var(--rot)); opacity: 1; }
+  100% { transform: translateY(420px) rotate(calc(var(--rot) + 180deg)); opacity: 0; }
+}
+
+.redeem-prize-ring {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  margin-left: -50px;
+  border-radius: 50%;
+  border: 3px solid rgba(46, 204, 113, 0.3);
+  animation: redeem-ring-pulse 1.2s ease infinite;
+}
+
+@keyframes redeem-ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 0.2; }
+}
+
+.redeem-prize-icon {
+  display: block;
+  font-size: 3.5rem;
+  margin: 8px auto 12px;
+  animation: redeem-prize-bounce 0.7s var(--ease-spring) 0.2s both;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes redeem-prize-bounce {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.redeem-celebration-card h3 {
+  font-size: 1.35rem;
+  margin-bottom: 6px;
+  color: var(--green-dark);
+}
+
+.redeem-prize-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.redeem-code-wrap {
+  background: var(--bg-alt);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.redeem-code-wrap small {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.redeem-code-wrap code {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-family: ui-monospace, monospace;
+  color: var(--green-dark);
+  letter-spacing: 0.08em;
+}
+
+.redeem-spent,
+.redeem-balance {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.redeem-balance {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+body.redeem-open {
+  overflow: hidden;
+}
+
+/* ── Connected entities (index) ── */
+.connected-entities-panel {
+  max-width: 1100px;
+  margin: 28px auto 0;
+  padding: 0 4px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s var(--ease-out);
+}
+
+.connected-entities-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.connected-entities-lead {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.connected-entities-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.entity-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
+}
+
+.entity-chip-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.entity-chip-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.entity-chip-body strong {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entity-chip-body span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.entity-chip-status {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--green-dark);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .points-toast-stack {
+    top: auto;
+    bottom: max(88px, calc(72px + env(safe-area-inset-bottom, 0px)));
+    right: 50%;
+    transform: translateX(50%);
+    width: min(340px, calc(100vw - 24px));
+  }
+
+  .points-toast {
+    transform: translateY(120%);
+  }
+
+  .points-toast.show {
+    transform: translateY(0);
+  }
+
+  .connected-entities-list {
+    grid-template-columns: 1fr;
+  }
+
+  .entity-chip {
+    padding: 12px 14px;
+  }
+
+  .redeem-celebration-card {
+    padding: 28px 18px 20px;
+  }
+
+  .redeem-code-wrap code {
+    font-size: 1.15rem;
   }
 }
